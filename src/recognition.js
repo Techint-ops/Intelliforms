@@ -301,125 +301,122 @@ export function isFingerExtended(landmarks, mcp, pip, dip, tip) {
  * Heuristic rule-based ASL letter recognition
  */
 export function recognizeLetter(landmarks) {
-  const fingers = [
-    isFingerExtended(landmarks, 1, 2, 3, 4), // thumb
-    isFingerExtended(landmarks, 5, 6, 7, 8), // index
-    isFingerExtended(landmarks, 9, 10, 11, 12), // middle
-    isFingerExtended(landmarks, 13, 14, 15, 16), // ring
-    isFingerExtended(landmarks, 17, 18, 19, 20), // pinky
-  ];
-
+  const wrist = landmarks[0];
   const thumbTip = landmarks[4];
   const thumbMCP = landmarks[2];
+  const indexTip = landmarks[8];
+  const indexPIP = landmarks[6];
   const indexMCP = landmarks[5];
+  const middleTip = landmarks[12];
+  const middlePIP = landmarks[10];
+  const ringTip = landmarks[16];
+  const ringPIP = landmarks[14];
+  const pinkyTip = landmarks[20];
+  const pinkyPIP = landmarks[18];
 
-  let thumbState = "side";
-  if (thumbTip.x < indexMCP.x) thumbState = "across";
-  if (thumbTip.y < thumbMCP.y) thumbState = "up";
-
-  // A - fist
-  if (
-    fingers[1] === 0 &&
-    fingers[2] === 0 &&
-    fingers[3] === 0 &&
-    fingers[4] === 0
-  ) {
-    if (thumbState === "side") return "A";
-    if (thumbState === "across") return "S";
-    return "A";
+  function dist(p1, p2) {
+    return Math.hypot(p1.x - p2.x, p1.y - p2.y);
   }
 
-  // B - all fingers up
-  if (
-    fingers[1] === 1 &&
-    fingers[2] === 1 &&
-    fingers[3] === 1 &&
-    fingers[4] === 1
-  ) {
-    if (thumbState === "across") return "B";
-    return "B";
-  }
+  // A finger is considered extended if its tip is noticeably further from wrist than its PIP
+  const idx = dist(indexTip, wrist) > dist(indexPIP, wrist) * 1.15;
+  const mid = dist(middleTip, wrist) > dist(middlePIP, wrist) * 1.15;
+  const ring = dist(ringTip, wrist) > dist(ringPIP, wrist) * 1.15;
+  const pinky = dist(pinkyTip, wrist) > dist(pinkyPIP, wrist) * 1.15;
+  const thumbExt =
+    dist(thumbTip, wrist) > dist(thumbMCP, wrist) * 1.2 &&
+    dist(thumbTip, indexMCP) > 0.08;
 
-  // I - pinky only
-  if (
-    fingers[1] === 0 &&
-    fingers[2] === 0 &&
-    fingers[3] === 0 &&
-    fingers[4] === 1
-  ) {
-    if (thumbState === "out") return "Y";
-    return "I";
-  }
+  // Inter-finger distances
+  const thumbIndexDist = dist(thumbTip, indexTip);
+  const thumbMiddleDist = dist(thumbTip, middleTip);
+  const indexMiddleDist = dist(indexTip, middleTip);
 
-  // D - index only
-  if (
-    fingers[1] === 1 &&
-    fingers[2] === 0 &&
-    fingers[3] === 0 &&
-    fingers[4] === 0
-  ) {
-    if (thumbState === "up") return "G";
-    if (thumbState === "out") return "L";
-    return "D";
-  }
-
-  // Index + middle
-  if (
-    fingers[1] === 1 &&
-    fingers[2] === 1 &&
-    fingers[3] === 0 &&
-    fingers[4] === 0
-  ) {
-    const indexTip = landmarks[8];
-    const middleTip = landmarks[12];
-    const dist = Math.sqrt(
-      Math.pow(indexTip.x - middleTip.x, 2) +
-        Math.pow(indexTip.y - middleTip.y, 2),
-    );
-
-    if (dist < 0.05) return "U";
-    if (thumbState === "between") return "K";
-    return "V";
-  }
-
-  // W - three fingers
-  if (
-    fingers[1] === 1 &&
-    fingers[2] === 1 &&
-    fingers[3] === 1 &&
-    fingers[4] === 0
-  ) {
-    return "W";
-  }
-
-  // F - index half, others curled
-  if (
-    fingers[1] === 0.5 &&
-    fingers[2] === 0 &&
-    fingers[3] === 0 &&
-    fingers[4] === 0
-  ) {
+  // 1. F: Thumb and Index tips touch, Middle + Ring + Pinky extended up
+  if (thumbIndexDist < 0.09 && mid && ring && pinky) {
     return "F";
   }
 
-  // X - index bent
-  if (
-    fingers[1] === 0.5 &&
-    fingers[2] === 0 &&
-    fingers[3] === 0 &&
-    fingers[4] === 0
-  ) {
-    return "X";
+  // 2. D vs L vs G
+  if (idx && !mid && !ring && !pinky) {
+    // If thumb is extended out horizontally forming an L shape
+    if (thumbExt && thumbIndexDist > 0.11) {
+      return "L";
+    }
+    // G: Index pointing sideways / forward
+    if (
+      Math.abs(indexTip.y - indexMCP.y) < 0.08 &&
+      Math.abs(thumbTip.y - thumbMCP.y) < 0.08
+    ) {
+      return "G";
+    }
+    return "D";
   }
 
-  // O - all fingers slightly curled
+  // 3. L: Index up, Thumb sticking out wide, other 3 fingers curled
+  if (idx && !mid && !ring && !pinky && thumbExt) {
+    return "L";
+  }
+
+  // 4. B: 4 fingers straight up, thumb tucked across palm
+  if (idx && mid && ring && pinky && !thumbExt) {
+    return "B";
+  }
+
+  // 5. W: Index, Middle, Ring up, Pinky curled
+  if (idx && mid && ring && !pinky) {
+    return "W";
+  }
+
+  // 6. V / U / K: Index + Middle up, Ring + Pinky curled
+  if (idx && mid && !ring && !pinky) {
+    if (indexMiddleDist > 0.055) return "V";
+    if (thumbIndexDist < 0.08) return "K";
+    return "U";
+  }
+
+  // 7. Y: Thumb and Pinky extended out, middle 3 curled
+  if (thumbExt && pinky && !idx && !mid && !ring) {
+    return "Y";
+  }
+
+  // 8. I: Pinky only extended up
+  if (pinky && !idx && !mid && !ring && !thumbExt) {
+    return "I";
+  }
+
+  // 9. C: All fingers curved, thumb curved opposite forming an open 'C'
   if (
-    fingers[1] === 0.3 &&
-    fingers[2] === 0.3 &&
-    fingers[3] === 0.3 &&
-    fingers[4] === 0.3
+    !idx &&
+    !mid &&
+    !ring &&
+    !pinky &&
+    thumbIndexDist > 0.08 &&
+    thumbIndexDist < 0.22
+  ) {
+    if (dist(indexTip, indexMCP) > 0.07 && dist(thumbTip, thumbMCP) > 0.06) {
+      return "C";
+    }
+  }
+
+  // 10. O: All 4 fingertips touching or nearly touching thumb tip
+  if (
+    !idx &&
+    !mid &&
+    !ring &&
+    !pinky &&
+    thumbIndexDist < 0.075 &&
+    thumbMiddleDist < 0.075
   ) {
     return "O";
+  }
+
+  // 11. E: All 4 fingers curled tight, thumb folded underneath touching fingertips
+  if (!idx && !mid && !ring && !pinky) {
+    if (thumbTip.y >= indexPIP.y - 0.04 && dist(thumbTip, indexMCP) < 0.12 && !thumbExt) {
+      return "E";
+    }
+    return "A";
   }
 
   return null;
