@@ -188,9 +188,14 @@ function renderSummary() {
 }
 
 function renderASLSigns(text) {
-  const aslSignDisplay = document.getElementById("aslSignDisplay");
+  const aslSignDisplay =
+    document.getElementById("aslSignsDisplay") ||
+    document.getElementById("aslSignDisplay");
+  const aslTextDisplay = document.getElementById("aslTextDisplay");
+
   if (!aslSignDisplay) return;
   aslSignDisplay.innerHTML = "";
+  if (aslTextDisplay) aslTextDisplay.textContent = text || "";
   if (!text) return;
 
   const chars = text.toLowerCase().split("");
@@ -198,7 +203,10 @@ function renderASLSigns(text) {
     if (aslSigns[c]) {
       const wrapper = document.createElement("div");
       wrapper.innerHTML = aslSigns[c];
-      aslSignDisplay.appendChild(wrapper.firstChild);
+      const imgOrDiv = wrapper.firstElementChild;
+      if (imgOrDiv) {
+        aslSignDisplay.appendChild(imgOrDiv);
+      }
     } else if (c === " ") {
       const space = document.createElement("span");
       space.style.cssText = "display:inline-block; width:16px;";
@@ -394,13 +402,12 @@ function submitForm() {
 
   const payload = {
     form_name: formName || "Untitled Form",
-    persona: state.persona || "none",
-    field_mode: state.field || "written",
-    details_mode: state.details || "written",
     fields: fillCollectedFields.map((f) => ({
       name: f.name,
-      field_type: f.type,
-      detail_type: f.detailType,
+      type: f.type,
+      persona: state.persona,
+      field_mode: state.field,
+      details_mode: state.details,
     })),
     responses: fillCollectedFields.map((f, i) => ({
       name: f.name,
@@ -487,19 +494,24 @@ function renderSubmissions(rows, source) {
       "</span>";
     html += "</div>";
 
+    const firstField = (row.fields && row.fields[0]) || {};
+    const persona = row.persona || firstField.persona || "—";
+    const fieldMode = row.field_mode || firstField.field_mode || "—";
+    const detailsMode = row.details_mode || firstField.details_mode || "—";
+
     html +=
       '<div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; font-size:12px;">';
     html +=
       '<span style="background:#e0e7ff; color:#3730a3; padding:2px 8px; border-radius:4px;">Persona: ' +
-      escapeHtml(row.persona || "—") +
+      escapeHtml(persona) +
       "</span>";
     html +=
       '<span style="background:#ede9fe; color:#5b21b6; padding:2px 8px; border-radius:4px;">Field: ' +
-      escapeHtml(row.field_mode || "—") +
+      escapeHtml(fieldMode) +
       "</span>";
     html +=
       '<span style="background:#fae8ff; color:#86198f; padding:2px 8px; border-radius:4px;">Details: ' +
-      escapeHtml(row.details_mode || "—") +
+      escapeHtml(detailsMode) +
       "</span>";
     html += "</div>";
 
@@ -579,34 +591,27 @@ function initSubmissionsModal() {
   const refreshBtn = document.getElementById("refreshSubmissionsBtn");
   const navViewBtn = document.getElementById("viewSubmissionsNavBtn");
 
-  if (viewBtn && modal) {
-    viewBtn.addEventListener("click", () => {
-      modal.classList.remove("hidden");
-      loadSubmissions();
-    });
+  function openSubmissions() {
+    if (!modal) return;
+    modal.style.display = "flex";
+    modal.classList.remove("hidden");
+    loadSubmissions();
   }
 
-  if (navViewBtn && viewBtn) {
-    navViewBtn.addEventListener("click", () => {
-      viewBtn.click();
-    });
+  function closeSubmissions() {
+    if (!modal) return;
+    modal.style.display = "none";
+    modal.classList.add("hidden");
   }
 
-  if (closeBtn && modal) {
-    closeBtn.addEventListener("click", () => {
-      modal.classList.add("hidden");
-    });
-  }
-
-  if (refreshBtn) {
-    refreshBtn.addEventListener("click", () => {
-      loadSubmissions();
-    });
-  }
+  if (viewBtn) viewBtn.addEventListener("click", openSubmissions);
+  if (navViewBtn) navViewBtn.addEventListener("click", openSubmissions);
+  if (closeBtn) closeBtn.addEventListener("click", closeSubmissions);
+  if (refreshBtn) refreshBtn.addEventListener("click", loadSubmissions);
 
   if (modal) {
     modal.addEventListener("click", (e) => {
-      if (e.target === modal) modal.classList.add("hidden");
+      if (e.target === modal) closeSubmissions();
     });
   }
 }
@@ -639,11 +644,7 @@ function initAccessibilityModal() {
 
   if (showBtn) showBtn.addEventListener("click", openStatement);
   if (hideBtn) hideBtn.addEventListener("click", closeStatement);
-  if (navStmtBtn && showBtn) {
-    navStmtBtn.addEventListener("click", () => {
-      showBtn.click();
-    });
-  }
+  if (navStmtBtn) navStmtBtn.addEventListener("click", openStatement);
 
   if (panel) {
     panel.addEventListener("keydown", (e) => {
@@ -966,6 +967,26 @@ function initApp() {
   }
 
   // Live Form Filling Step Progression
+  const fillBackBtn = document.getElementById("fillBackBtn");
+  if (fillBackBtn && fillResponseInput) {
+    fillBackBtn.addEventListener("click", () => {
+      if (fillCurrentIndex > 0) {
+        fillResponses[fillCurrentIndex] = fillResponseInput.value;
+        fillCurrentIndex--;
+        renderFillField();
+      } else {
+        const formFillingSection = document.getElementById("formFillingSection");
+        const customizeSection = document.querySelector(".section");
+        if (formFillingSection) formFillingSection.classList.add("hidden");
+        if (customizeSection) {
+          customizeSection.classList.remove("hidden");
+          customizeSection.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+        stopCamera();
+      }
+    });
+  }
+
   if (fillNextBtn && fillResponseInput) {
     fillNextBtn.addEventListener("click", () => {
       fillResponses[fillCurrentIndex] = fillResponseInput.value;

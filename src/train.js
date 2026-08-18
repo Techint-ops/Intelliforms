@@ -476,13 +476,13 @@ export function initTrainPanel(getCurrentLandmarks) {
     });
   }
 
-  // Auto-reconnect on load
+  // Auto-connect to saved sync code or default to techint6 on initial load
   try {
-    const savedCode = localStorage.getItem(SYNC_CODE_KEY);
+    const savedCode = localStorage.getItem(SYNC_CODE_KEY) || "techint6";
     const client = sb || window.sb;
     if (savedCode && client) {
       if (syncCodeInput) syncCodeInput.value = savedCode;
-      setSyncStatus('Reconnecting to "' + savedCode + '"…');
+      setSyncStatus('Connecting to cloud signs ("' + savedCode + '")…');
       cloudLoadAll(savedCode)
         .then((loaded) => {
           syncCode = savedCode;
@@ -493,11 +493,11 @@ export function initTrainPanel(getCurrentLandmarks) {
               savedCode +
               '". Loaded ' +
               loaded +
-              " sample(s) from cloud.",
+              " trained sample(s) from cloud.",
           );
         })
         .catch((e) => {
-          setSyncStatus("Auto-reconnect failed: " + (e.message || e));
+          setSyncStatus("Auto-sync failed: " + (e.message || e));
         });
     }
   } catch (e) {}
