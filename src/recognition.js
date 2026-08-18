@@ -89,13 +89,19 @@ export function initHandTracking() {
  * Handle detection results from MediaPipe Hands
  */
 export function onHandResults(results) {
-  const handCanvas = document.getElementById("output_canvas");
+  const handCanvas =
+    document.getElementById("handCanvas") ||
+    document.getElementById("output_canvas");
   const handStatusOverlay = document.getElementById("handStatusOverlay");
   const detectedSign = document.getElementById("detectedSign");
   const detectedSource = document.getElementById("detectedSource");
   const captureSignBtn = document.getElementById("captureSignBtn");
-  const holdBar = document.getElementById("holdBar");
-  const holdWrap = document.getElementById("holdWrap");
+  const holdBar =
+    document.getElementById("holdProgressBar") ||
+    document.getElementById("holdBar");
+  const holdWrap =
+    document.getElementById("holdProgressWrap") ||
+    document.getElementById("holdWrap");
 
   if (!handCanvas) return;
   const canvasCtx = handCanvas.getContext("2d");
@@ -501,7 +507,9 @@ export function startCamera() {
   const startCameraBtn = document.getElementById("startCameraBtn");
   const cameraLoading = document.getElementById("cameraLoading");
   const handStatusOverlay = document.getElementById("handStatusOverlay");
-  const webcamVideo = document.getElementById("webcam");
+  const webcamVideo =
+    document.getElementById("webcamVideo") ||
+    document.getElementById("webcam");
 
   if (!webcamVideo || !startCameraBtn) return;
   if (isCameraRunning) {
@@ -561,7 +569,9 @@ export function stopCamera() {
   const handStatusOverlay = document.getElementById("handStatusOverlay");
   const detectedSign = document.getElementById("detectedSign");
   const captureSignBtn = document.getElementById("captureSignBtn");
-  const handCanvas = document.getElementById("output_canvas");
+  const handCanvas =
+    document.getElementById("handCanvas") ||
+    document.getElementById("output_canvas");
 
   if (camera) {
     camera.stop();
@@ -592,7 +602,7 @@ export function initRecognitionControls() {
   const startCameraBtn = document.getElementById("startCameraBtn");
   const captureSignBtn = document.getElementById("captureSignBtn");
   const clearSignBtn = document.getElementById("clearSignBtn");
-  const modeBtns = document.querySelectorAll(".mode-btn");
+  const modeBtns = document.querySelectorAll(".sign-mode-btn, .mode-btn");
   const fillResponseInput = document.getElementById("fillResponseInput");
   const detectedSign = document.getElementById("detectedSign");
   const detectedSource = document.getElementById("detectedSource");
