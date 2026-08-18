@@ -1,0 +1,2006 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Intelliform — AI-enabled Digital Accessibility Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="/styles.css" />
+
+    <!-- MediaPipe Hands & Supabase Client -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  </head>
+  <body>
+    <a href="#main" class="skip-link">Skip to main content</a>
+
+    <!-- ===== INTELLIFORM NAVIGATION ===== -->
+    <nav class="intelliform-nav" aria-label="Main navigation">
+      <span class="nav-brand" aria-hidden="true">
+        <span class="nav-brand-dot"></span>
+        Intelliform
+      </span>
+      <ul class="nav-links" role="list">
+        <li>
+          <button type="button" class="nav-btn active" onclick="scrollToMain()">
+            Home
+          </button>
+        </li>
+        <li>
+          <button type="button" class="nav-btn" onclick="scrollToAbout()">
+            About
+          </button>
+        </li>
+        <li><span class="nav-divider" aria-hidden="true"></span></li>
+        <li>
+          <button
+            type="button"
+            class="nav-btn"
+            id="navCustomizeBtn"
+            onclick="navCustomize()"
+          >
+            Customize your form
+          </button>
+        </li>
+        <li>
+          <button
+            type="button"
+            class="nav-btn"
+            id="navFieldBtn"
+            onclick="navField()"
+          >
+            Field
+          </button>
+        </li>
+        <li>
+          <button
+            type="button"
+            class="nav-btn"
+            id="navDetailsBtn"
+            onclick="navDetails()"
+          >
+            Details
+          </button>
+        </li>
+        <li><span class="nav-divider" aria-hidden="true"></span></li>
+        <li>
+          <button
+            type="button"
+            class="nav-btn"
+            id="navFillBtn"
+            onclick="navFill()"
+          >
+            Fill your form
+          </button>
+        </li>
+        <li>
+          <button
+            type="button"
+            class="nav-btn nav-btn-primary"
+            id="viewSubmissionsNavBtn"
+          >
+            View saved submissions
+          </button>
+        </li>
+        <li><span class="nav-divider" aria-hidden="true"></span></li>
+        <li>
+          <button type="button" class="nav-btn" id="showStatementNavBtn">
+            Accessibility certificate
+          </button>
+        </li>
+      </ul>
+      <div class="nav-text-size" role="group" aria-label="Adjust text size">
+        <button type="button" id="decreaseText" aria-label="Decrease text size">
+          A−
+        </button>
+        <span id="textSizeLabel">100%</span>
+        <button type="button" id="increaseText" aria-label="Increase text size">
+          A+
+        </button>
+      </div>
+    </nav>
+
+    <main id="main">
+      <!-- ===== HERO ===== -->
+      <header class="hero" id="heroSection">
+        <div class="hero-eyebrow">
+          AI-enabled Digital Accessibility Platform
+        </div>
+        <h1 class="hero-title">Welcome to <em>Intelliform</em></h1>
+        <p class="hero-sub">
+          Whether you are visually impaired, non-verbal, hard of hearing, or
+          cannot type - this platform helps you fill customized forms with ease
+          and precision.
+        </p>
+      </header>
+
+      <!-- ===== ABOUT BANNER ===== -->
+      <!-- ===== ABOUT BANNER ===== -->
+      <div class="about-banner" id="aboutSection">
+        <div class="about-banner-text">
+          <div>
+            <h2>About Intelliform</h2>
+            <p>
+              This platform uses Artificial Intelligence technologies -
+              speech-to-text, text-to-speech, sign language-to-text, and
+              text-to-sign language - enabling users with disabilities to fill up
+              forms independently.
+            </p>
+          </div>
+          <div class="about-banner-right">
+            <p>
+              Organizations can customize their own forms. Users explicitly select
+              how each field is presented and how they provide answers. Completed
+              forms are saved and viewable at any time. Go ahead and explore the
+              form generating platform fitted for you!
+            </p>
+          </div>
+        </div>
+
+        <h3 class="about-personas-title">Who is Intelliform for?</h3>
+        <p class="about-personas-hint">
+          Select the profile that fits you — each one shows how fields are
+          presented and how answers can be given.
+        </p>
+        <div
+          class="about-personas"
+          role="group"
+          aria-label="Accessibility profiles"
+        >
+            <button
+              type="button"
+              class="persona-card"
+              data-persona="visual"
+              aria-pressed="false"
+            >
+              <span class="check" aria-hidden="true">✓</span>
+              <span
+                class="persona-photo"
+                aria-hidden="true"
+                style="
+                  background-image: url(&quot;data:image/jpeg;base64,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&quot;);
+                "
+              >
+                <span class="persona-tag">👁 Visually impaired</span>
+              </span>
+              <span class="persona-body">
+                <h2>Blind / low vision</h2>
+                <p class="sub">Reads or listens rather than viewing text</p>
+                <p class="quote">
+                  "Read out fields to me — I'll speak or sign my answers."
+                </p>
+              </span>
+            </button>
+
+            <button
+              type="button"
+              class="persona-card"
+              data-persona="hearing"
+              aria-pressed="false"
+            >
+              <span class="check" aria-hidden="true">✓</span>
+              <span
+                class="persona-photo"
+                aria-hidden="true"
+                style="
+                  background-image: url(&quot;data:image/jpeg;base64,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&quot;);
+                "
+              >
+                <span class="persona-tag">👂 Hard of hearing</span>
+              </span>
+              <span class="persona-body">
+                <h2>Deaf / hearing impaired</h2>
+                <p class="sub">Relies on visual cues over audio</p>
+                <p class="quote">
+                  "Show fields as sign animations — I'll sign back or type."
+                </p>
+              </span>
+            </button>
+
+            <button
+              type="button"
+              class="persona-card"
+              data-persona="nonverbal"
+              aria-pressed="false"
+            >
+              <span class="check" aria-hidden="true">✓</span>
+              <span
+                class="persona-photo"
+                aria-hidden="true"
+                style="
+                  background-image: url(&quot;data:image/jpeg;base64,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&quot;);
+                "
+              >
+                <span class="persona-tag">🤐 Non-verbal</span>
+              </span>
+              <span class="persona-body">
+                <h2>Cannot speak</h2>
+                <p class="sub">Communicates through text or sign</p>
+                <p class="quote">
+                  "Show each field on screen — I'll sign my response to the
+                  camera."
+                </p>
+              </span>
+            </button>
+
+            <button
+              type="button"
+              class="persona-card"
+              data-persona="locomotor"
+              aria-pressed="false"
+            >
+              <span class="check" aria-hidden="true">✓</span>
+              <span
+                class="persona-photo"
+                aria-hidden="true"
+                style="
+                  background-image: url(&quot;data:image/jpeg;base64,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&quot;);
+                "
+              >
+                <span class="persona-tag">♿ Locomotor disability</span>
+              </span>
+              <span class="persona-body">
+                <h2>Cannot type / limited motor</h2>
+                <p class="sub">Typing is difficult or impossible</p>
+                <p class="quote">
+                  "No typing needed — I'll just speak or sign and you fill it
+                  in."
+                </p>
+              </span>
+            </button>
+        </div>
+      </div>
+
+      <section class="section" aria-labelledby="customize-heading">
+        <div class="layout-grid">
+
+          <div class="center-col">
+            <button
+              type="button"
+              id="customize-heading"
+              class="section-label"
+              aria-label="Customize your form — click to set up your form fields"
+            >
+              Customize your form
+            </button>
+
+            <p class="persona-instructions">
+              Select the mode that fits you, and choose how to interact
+            </p>
+
+            <div class="chooser-wrap">
+              <div class="chooser-grid">
+                <div class="chooser-col" id="fieldCol">
+                  <h2
+                    class="col-title"
+                    id="fieldColTitle"
+                    role="button"
+                    tabindex="0"
+                    onclick="navField()"
+                    onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();navField();}"
+                  >
+                    Field
+                  </h2>
+                  <p class="col-question">
+                    How should the field questions be shown to you?
+                  </p>
+                  <div
+                    class="option-stack"
+                    role="radiogroup"
+                    aria-label="How field questions are shown"
+                  >
+                    <button
+                      type="button"
+                      class="option-btn"
+                      data-group="field"
+                      data-value="written"
+                      role="radio"
+                      aria-checked="false"
+                    >
+                      <span>Written</span>
+                    </button>
+                    <button
+                      type="button"
+                      class="option-btn"
+                      data-group="field"
+                      data-value="spoken"
+                      role="radio"
+                      aria-checked="false"
+                    >
+                      <span>Spoken</span>
+                    </button>
+                    <button
+                      type="button"
+                      class="option-btn"
+                      data-group="field"
+                      data-value="signed"
+                      role="radio"
+                      aria-checked="false"
+                    >
+                      <span>Hand-signed</span>
+                    </button>
+                  </div>
+                  <p class="option-hint" id="fieldHint" aria-live="polite"></p>
+                </div>
+
+                <div class="chooser-col" id="detailsCol">
+                  <h2
+                    class="col-title"
+                    id="detailsColTitle"
+                    role="button"
+                    tabindex="0"
+                    onclick="navDetails()"
+                    onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();navDetails();}"
+                  >
+                    Details
+                  </h2>
+                  <p class="col-question">How will you provide your answers?</p>
+                  <div
+                    class="option-stack"
+                    role="radiogroup"
+                    aria-label="How answers are provided"
+                  >
+                    <button
+                      type="button"
+                      class="option-btn"
+                      data-group="details"
+                      data-value="written"
+                      role="radio"
+                      aria-checked="false"
+                    >
+                      <span>Written</span>
+                    </button>
+                    <button
+                      type="button"
+                      class="option-btn"
+                      data-group="details"
+                      data-value="spoken"
+                      role="radio"
+                      aria-checked="false"
+                    >
+                      <span>Spoken</span>
+                    </button>
+                    <button
+                      type="button"
+                      class="option-btn"
+                      data-group="details"
+                      data-value="signed"
+                      role="radio"
+                      aria-checked="false"
+                    >
+                      <span>Hand-signed</span>
+                    </button>
+                  </div>
+                  <p
+                    class="option-hint"
+                    id="detailsHint"
+                    aria-live="polite"
+                  ></p>
+                </div>
+              </div>
+
+              <div class="summary-bar" id="summaryBar">
+                <span class="summary-chip"
+                  >Persona:
+                  <strong id="summaryPersona">None selected</strong></span
+                >
+                <span class="summary-chip"
+                  >Field shown as: <strong id="summaryField">—</strong></span
+                >
+                <span class="summary-chip"
+                  >Answers given as:
+                  <strong id="summaryDetails">—</strong></span
+                >
+              </div>
+            </div>
+
+            <div class="cta-wrap">
+              <button
+                type="button"
+                class="cta-btn"
+                id="startBtn"
+                aria-disabled="true"
+              >
+                Start filling the form
+              </button>
+              <p class="cta-note" id="ctaNote">
+                Choose how fields are shown and how you'll answer to continue.
+              </p>
+              <button
+                type="button"
+                class="cta-btn"
+                id="viewSubmissionsBtn"
+                style="
+                  margin-top: 12px;
+                  background: var(--terracotta);
+                  color: #fff;
+                "
+              >
+                <span aria-hidden="true">📥</span> View saved submissions
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <p class="live-region" id="liveRegion" aria-live="polite"></p>
+      </section>
+
+      <section
+        class="builder-section hidden"
+        id="builderSection"
+        aria-labelledby="builder-heading"
+      >
+        <div class="builder-card">
+          <!-- Step 0: how many fields -->
+          <div id="stepCount">
+            <p class="builder-step-label">Step 1</p>
+            <h2 id="builder-heading">Customize your form</h2>
+            <div class="builder-row">
+              <label for="formNameInput">Name of your form:</label>
+              <input
+                type="text"
+                id="formNameInput"
+                class="builder-input"
+                placeholder="e.g. Patient Registration"
+                aria-describedby="countError"
+              />
+            </div>
+            <div class="builder-row">
+              <label for="fieldCountInput"
+                >Number of fields in your form:</label
+              >
+              <input
+                type="number"
+                id="fieldCountInput"
+                class="builder-input"
+                min="1"
+                max="20"
+                inputmode="numeric"
+                aria-describedby="countError"
+              />
+            </div>
+            <p class="builder-error" id="countError"></p>
+            <div class="builder-actions">
+              <button
+                type="button"
+                class="builder-back-btn"
+                id="backToChooserBtn"
+              >
+                Back
+              </button>
+              <button type="button" class="builder-next-btn" id="countNextBtn">
+                Next
+              </button>
+            </div>
+          </div>
+
+          <!-- Step N: one card per field, shown one at a time -->
+          <div id="stepField" class="hidden">
+            <p
+              class="builder-step-label"
+              id="fieldStepLabel"
+              aria-live="polite"
+              aria-atomic="true"
+            >
+              Field 1 of 1
+            </p>
+            <h2 id="fieldStepHeading">Tell us about field 1</h2>
+            <div
+              class="builder-progress"
+              id="builderProgress"
+              aria-hidden="true"
+            ></div>
+
+            <div class="builder-field-grid">
+              <div class="builder-field-col">
+                <label for="fieldNameInput">Name of field</label>
+                <input
+                  type="text"
+                  id="fieldNameInput"
+                  class="builder-input"
+                  placeholder="e.g. Full name"
+                  aria-describedby="fieldError"
+                />
+              </div>
+              <div class="builder-field-col">
+                <label for="fieldTypeInput">Type</label>
+                <select id="fieldTypeInput" class="builder-select">
+                  <option value="">Select a type…</option>
+                  <option value="alphabetical">Alphabetical</option>
+                  <option value="numerical">Numerical</option>
+                  <option value="alphanumerical">Alphanumerical</option>
+                </select>
+              </div>
+            </div>
+            <p class="builder-error" id="fieldError"></p>
+            <div class="builder-actions">
+              <button type="button" class="builder-back-btn" id="fieldBackBtn">
+                Back
+              </button>
+              <div style="display: flex; gap: 12px">
+                <button
+                  type="button"
+                  class="builder-next-btn"
+                  id="fieldNextBtn"
+                >
+                  Next
+                </button>
+                <button
+                  type="button"
+                  class="builder-back-btn hidden"
+                  id="fieldFinishBtn"
+                  style="
+                    background: var(--terracotta);
+                    color: #fff;
+                    border-color: var(--terracotta-dark);
+                  "
+                >
+                  Finish
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Final step: summary of all collected fields -->
+          <div id="stepSummary" class="hidden">
+            <p class="builder-step-label">All set</p>
+            <h2 id="summaryFormName">Your form fields</h2>
+            <table class="builder-summary-table">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Field name</th>
+                  <th scope="col">Type</th>
+                </tr>
+              </thead>
+              <tbody id="summaryTableBody"></tbody>
+            </table>
+            <div class="builder-actions">
+              <button type="button" class="builder-back-btn" id="editFieldsBtn">
+                Edit fields
+              </button>
+              <button
+                type="button"
+                class="builder-next-btn"
+                id="generateFormBtn"
+              >
+                Generate form
+              </button>
+            </div>
+          </div>
+        </div>
+        <p class="live-region" id="builderLiveRegion" aria-live="polite"></p>
+      </section>
+
+      <!-- Form Filling Interface (Written/Written mode) -->
+      <section
+        class="builder-section hidden"
+        id="formFillingSection"
+        aria-labelledby="fillFormName"
+      >
+        <div
+          class="builder-card"
+          style="background: var(--blush); border: none; box-shadow: none"
+        >
+          <!-- Status indicators -->
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 40px;
+            "
+          >
+            <div
+              style="
+                background: var(--terracotta);
+                color: #fff;
+                padding: 12px 24px;
+                border-radius: 8px;
+                font-size: 1.1rem;
+                min-width: 160px;
+              "
+            >
+              <div style="font-size: 0.85rem; opacity: 0.9">Field:</div>
+              <div id="fillFieldStatus" style="font-weight: 600">Written</div>
+            </div>
+            <div
+              style="
+                background: var(--terracotta);
+                color: #fff;
+                padding: 12px 24px;
+                border-radius: 8px;
+                font-size: 1.1rem;
+                min-width: 160px;
+              "
+            >
+              <div style="font-size: 0.85rem; opacity: 0.9">Details:</div>
+              <div id="fillDetailsStatus" style="font-weight: 600">Written</div>
+            </div>
+          </div>
+
+          <!-- Form name -->
+          <h2
+            id="fillFormName"
+            style="
+              font-family: var(--display-font);
+              font-size: 2rem;
+              font-weight: 600;
+              margin: 0 0 40px 0;
+              color: var(--ink);
+            "
+          >
+            [Name of form]
+          </h2>
+
+          <!-- Current field display with Listen button -->
+          <div
+            id="fillFieldDisplay"
+            style="
+              margin-bottom: 30px;
+              display: flex;
+              align-items: center;
+              gap: 20px;
+              flex-wrap: wrap;
+            "
+          >
+            <p
+              id="fillFieldLabel"
+              aria-live="polite"
+              aria-atomic="true"
+              style="
+                font-size: 1.5rem;
+                font-weight: 600;
+                margin: 0;
+                color: var(--ink);
+              "
+            >
+              Field 1
+            </p>
+            <button
+              type="button"
+              id="listenBtn"
+              class="hidden"
+              style="
+                background: #fff;
+                border: 2px solid var(--terracotta);
+                color: var(--terracotta-dark);
+                border-radius: 12px;
+                padding: 12px 24px;
+                font-size: 1.05rem;
+                font-weight: 700;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                transition:
+                  background 0.15s ease,
+                  transform 0.15s ease;
+                white-space: nowrap;
+              "
+            >
+              <svg
+                aria-hidden="true"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                <path
+                  d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"
+                ></path>
+              </svg>
+              <span id="listenBtnText">Listen</span>
+            </button>
+          </div>
+
+          <!-- ASL Hand Signs Display Window (for signed field mode) -->
+          <div
+            id="aslWindow"
+            class="hidden"
+            style="
+              margin-bottom: 30px;
+              background: #000;
+              border-radius: 12px;
+              padding: 30px;
+              min-height: 180px;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              gap: 16px;
+            "
+          >
+            <div
+              style="
+                color: #fff;
+                font-size: 0.9rem;
+                opacity: 0.7;
+                margin-bottom: 8px;
+              "
+            >
+              ASL Translation Window
+            </div>
+            <div
+              id="aslSignsDisplay"
+              style="
+                display: flex;
+                flex-wrap: wrap;
+                gap: 4px;
+                justify-content: center;
+                align-items: center;
+              "
+            ></div>
+            <div
+              id="aslTextDisplay"
+              style="
+                color: #fff;
+                font-size: 1.1rem;
+                margin-top: 8px;
+                text-align: center;
+              "
+            ></div>
+          </div>
+
+          <!-- Camera Capture Area for Hand-Signed Input -->
+          <div
+            id="cameraCaptureArea"
+            class="hidden"
+            style="
+              margin-bottom: 16px;
+              background: #1e3a5f;
+              border-radius: 12px;
+              padding: 16px;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 10px;
+            "
+          >
+            <div
+              style="color: #fff; font-size: 0.9rem; opacity: 0.7"
+              aria-hidden="true"
+            >
+              &#x1F3A5; Camera Hand Sign Recognition
+            </div>
+
+            <!-- Video and Canvas Container -->
+            <div
+              style="
+                position: relative;
+                width: 100%;
+                max-width: 420px;
+                aspect-ratio: 16/9;
+                background: #000;
+                border-radius: 8px;
+                overflow: hidden;
+              "
+            >
+              <video
+                id="webcamVideo"
+                aria-hidden="true"
+                style="
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  width: 100%;
+                  height: 100%;
+                  object-fit: cover;
+                  transform: scaleX(-1);
+                "
+                autoplay
+                playsinline
+                muted
+              ></video>
+              <canvas
+                id="handCanvas"
+                aria-hidden="true"
+                style="
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  width: 100%;
+                  height: 100%;
+                  transform: scaleX(-1);
+                "
+              ></canvas>
+
+              <!-- Loading overlay -->
+              <div
+                id="cameraLoading"
+                style="
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  width: 100%;
+                  height: 100%;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  background: rgba(0, 0, 0, 0.8);
+                  color: #fff;
+                  font-size: 1rem;
+                "
+              >
+                <div style="text-align: center">
+                  <div style="margin-bottom: 12px">
+                    &#x23F3; Loading hand tracking...
+                  </div>
+                  <div style="font-size: 0.85rem; opacity: 0.7">
+                    Please allow camera access
+                  </div>
+                </div>
+              </div>
+
+              <!-- Status overlay -->
+              <div
+                id="handStatusOverlay"
+                aria-live="polite"
+                aria-atomic="true"
+                style="
+                  position: absolute;
+                  top: 12px;
+                  left: 12px;
+                  background: rgba(0, 0, 0, 0.75);
+                  color: #fff;
+                  padding: 6px 12px;
+                  border-radius: 6px;
+                  font-size: 0.85rem;
+                  font-weight: 600;
+                "
+              >
+                Waiting for hand...
+              </div>
+            </div>
+
+            <!-- Mode Toggle: Letter / Number / Custom -->
+            <div
+              role="group"
+              aria-label="Sign recognition mode"
+              style="
+                display: flex;
+                gap: 6px;
+                background: rgba(255, 255, 255, 0.08);
+                padding: 3px;
+                border-radius: 999px;
+              "
+            >
+              <button
+                type="button"
+                class="sign-mode-btn"
+                data-mode="letter"
+                aria-pressed="true"
+                style="
+                  background: #fff;
+                  color: #1e3a5f;
+                  border: none;
+                  border-radius: 999px;
+                  padding: 8px 18px;
+                  font-weight: 700;
+                  cursor: pointer;
+                "
+              >
+                Letters (A–Z)
+              </button>
+              <button
+                type="button"
+                class="sign-mode-btn"
+                data-mode="number"
+                aria-pressed="false"
+                style="
+                  background: transparent;
+                  color: #fff;
+                  border: none;
+                  border-radius: 999px;
+                  padding: 8px 18px;
+                  font-weight: 700;
+                  cursor: pointer;
+                "
+              >
+                Numbers (0–9)
+              </button>
+            </div>
+
+            <!-- Recognition Result -->
+            <div
+              id="signRecognitionResult"
+              style="
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
+                padding: 10px 16px;
+                min-width: 200px;
+                text-align: center;
+              "
+            >
+              <div
+                style="
+                  color: rgba(255, 255, 255, 0.8);
+                  font-size: 0.8rem;
+                  margin-bottom: 4px;
+                "
+              >
+                Detected Sign
+                <span
+                  id="detectedSource"
+                  style="opacity: 0.9; font-weight: 400"
+                ></span>
+              </div>
+              <div
+                id="detectedSign"
+                aria-live="polite"
+                aria-atomic="true"
+                style="
+                  color: #fff;
+                  font-size: 2rem;
+                  font-weight: 700;
+                  min-height: 40px;
+                "
+              >
+                -
+              </div>
+              <div
+                id="holdProgressWrap"
+                role="progressbar"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-valuenow="0"
+                aria-label="Hold progress"
+                style="
+                  margin-top: 8px;
+                  height: 6px;
+                  background: rgba(255, 255, 255, 0.15);
+                  border-radius: 999px;
+                  overflow: hidden;
+                "
+              >
+                <div
+                  id="holdProgressBar"
+                  style="
+                    height: 100%;
+                    width: 0%;
+                    background: #3b82f6;
+                    transition: width 0.1s linear;
+                  "
+                ></div>
+              </div>
+              <div
+                style="
+                  color: rgba(255, 255, 255, 0.85);
+                  font-size: 0.7rem;
+                  margin-top: 4px;
+                "
+              >
+                Hold the sign steady to auto-add it
+              </div>
+            </div>
+
+            <!-- Controls -->
+            <div
+              style="
+                display: flex;
+                gap: 12px;
+                flex-wrap: wrap;
+                justify-content: center;
+              "
+            >
+              <button
+                type="button"
+                id="startCameraBtn"
+                style="
+                  background: var(--sage);
+                  color: #fff;
+                  border: none;
+                  border-radius: 10px;
+                  padding: 12px 24px;
+                  font-size: 1rem;
+                  font-weight: 700;
+                  cursor: pointer;
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                  transition:
+                    transform 0.15s ease,
+                    background 0.15s ease;
+                "
+              >
+                <svg
+                  aria-hidden="true"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                  <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                </svg>
+                Start Camera
+              </button>
+              <button
+                type="button"
+                id="captureSignBtn"
+                disabled
+                style="
+                  background: var(--terracotta);
+                  color: #fff;
+                  border: none;
+                  border-radius: 10px;
+                  padding: 12px 24px;
+                  font-size: 1rem;
+                  font-weight: 700;
+                  cursor: pointer;
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                  transition:
+                    transform 0.15s ease,
+                    background 0.15s ease;
+                  opacity: 0.5;
+                "
+              >
+                <svg
+                  aria-hidden="true"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
+                  ></path>
+                  <circle cx="12" cy="13" r="4"></circle>
+                </svg>
+                Capture Sign
+              </button>
+              <button
+                type="button"
+                id="clearSignBtn"
+                style="
+                  background: transparent;
+                  color: #fff;
+                  border: 2px solid rgba(255, 255, 255, 0.3);
+                  border-radius: 10px;
+                  padding: 12px 24px;
+                  font-size: 1rem;
+                  font-weight: 700;
+                  cursor: pointer;
+                  transition:
+                    transform 0.15s ease,
+                    border-color 0.15s ease;
+                "
+              >
+                Clear
+              </button>
+            </div>
+
+            <div
+              style="
+                color: rgba(255, 255, 255, 0.85);
+                font-size: 0.75rem;
+                text-align: center;
+                max-width: 540px;
+                line-height: 1.3;
+              "
+            >
+              Hold your sign steady for ~1.2s to auto-add it.
+              <span style="color: #93c5fd">J/Z need motion — use Capture.</span>
+            </div>
+
+            <!-- Training Panel: teach a new sign -->
+            <details
+              id="trainPanel"
+              style="
+                width: 100%;
+                max-width: 640px;
+                background: rgba(255, 255, 255, 0.06);
+                border-radius: 10px;
+                padding: 12px 16px;
+                color: #fff;
+              "
+            >
+              <summary
+                style="cursor: pointer; font-weight: 700; font-size: 0.95rem"
+              >
+                <span aria-hidden="true">&#x1F9E0;</span> Train your own signs
+              </summary>
+              <div
+                style="
+                  display: flex;
+                  flex-direction: column;
+                  gap: 10px;
+                  margin-top: 12px;
+                "
+              >
+                <p style="margin: 0; font-size: 0.85rem; opacity: 0.95">
+                  Type the letter, number, or word a hand pose should mean, hold
+                  the pose in front of the camera, and click
+                  <strong>Record sample</strong> 5+ times (slightly vary the
+                  angle). Your trained signs are saved on this device and work
+                  in any mode.
+                </p>
+                <div
+                  style="
+                    display: flex;
+                    gap: 8px;
+                    flex-wrap: wrap;
+                    align-items: center;
+                  "
+                >
+                  <label for="trainLabelInput" class="live-region"
+                    >Sign label to train</label
+                  >
+                  <input
+                    id="trainLabelInput"
+                    type="text"
+                    placeholder="Label (e.g. A, 7, YES)"
+                    maxlength="12"
+                    aria-describedby="trainStatus"
+                    style="
+                      flex: 1;
+                      min-width: 160px;
+                      padding: 10px 12px;
+                      border-radius: 8px;
+                      border: 1px solid rgba(255, 255, 255, 0.2);
+                      background: #0f0f1f;
+                      color: #fff;
+                      font-size: 1rem;
+                    "
+                  />
+                  <button
+                    type="button"
+                    id="trainRecordBtn"
+                    style="
+                      background: var(--sage);
+                      color: #fff;
+                      border: none;
+                      border-radius: 8px;
+                      padding: 10px 16px;
+                      font-weight: 700;
+                      cursor: pointer;
+                    "
+                  >
+                    Record sample
+                  </button>
+                  <button
+                    type="button"
+                    id="trainClearLabelBtn"
+                    style="
+                      background: transparent;
+                      color: #fff;
+                      border: 1px solid rgba(255, 255, 255, 0.3);
+                      border-radius: 8px;
+                      padding: 10px 14px;
+                      font-weight: 600;
+                      cursor: pointer;
+                    "
+                  >
+                    Delete this label
+                  </button>
+                </div>
+                <div
+                  id="trainStatus"
+                  aria-live="polite"
+                  style="font-size: 0.85rem; opacity: 0.85; min-height: 1.2em"
+                ></div>
+                <div
+                  id="trainSamplesList"
+                  style="display: flex; flex-wrap: wrap; gap: 6px"
+                ></div>
+                <div
+                  style="
+                    display: flex;
+                    flex-direction: column;
+                    gap: 6px;
+                    border-top: 1px solid rgba(255, 255, 255, 0.1);
+                    padding-top: 10px;
+                  "
+                >
+                  <label
+                    for="syncCodeInput"
+                    style="font-size: 0.85rem; font-weight: 600"
+                    ><span aria-hidden="true">&#x2601;&#xFE0F;</span> Cloud sync
+                    code (optional)</label
+                  >
+                  <div
+                    style="
+                      display: flex;
+                      gap: 8px;
+                      flex-wrap: wrap;
+                      align-items: center;
+                    "
+                  >
+                    <input
+                      id="syncCodeInput"
+                      type="text"
+                      placeholder="Pick any code, e.g. priya-2026"
+                      maxlength="40"
+                      aria-describedby="syncStatus"
+                      style="
+                        flex: 1;
+                        min-width: 180px;
+                        padding: 10px 12px;
+                        border-radius: 8px;
+                        border: 1px solid rgba(255, 255, 255, 0.2);
+                        background: #0f0f1f;
+                        color: #fff;
+                        font-size: 0.95rem;
+                      "
+                    />
+                    <button
+                      type="button"
+                      id="syncConnectBtn"
+                      style="
+                        background: var(--sage);
+                        color: #fff;
+                        border: none;
+                        border-radius: 8px;
+                        padding: 10px 16px;
+                        font-weight: 700;
+                        cursor: pointer;
+                      "
+                    >
+                      Connect &amp; sync
+                    </button>
+                    <button
+                      type="button"
+                      id="syncDisconnectBtn"
+                      style="
+                        background: transparent;
+                        color: #fff;
+                        border: 1px solid rgba(255, 255, 255, 0.3);
+                        border-radius: 8px;
+                        padding: 10px 14px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        display: none;
+                      "
+                    >
+                      Disconnect
+                    </button>
+                  </div>
+                  <div
+                    style="
+                      display: flex;
+                      gap: 8px;
+                      flex-wrap: wrap;
+                      align-items: center;
+                    "
+                  >
+                    <button
+                      type="button"
+                      id="syncUploadBtn"
+                      style="
+                        background: transparent;
+                        color: #fff;
+                        border: 1px solid rgba(255, 255, 255, 0.3);
+                        border-radius: 8px;
+                        padding: 8px 14px;
+                        font-weight: 600;
+                        cursor: pointer;
+                      "
+                    >
+                      Upload local signs to cloud
+                    </button>
+                    <button
+                      type="button"
+                      id="syncReplaceBtn"
+                      style="
+                        background: transparent;
+                        color: #fff;
+                        border: 1px solid rgba(255, 140, 140, 0.5);
+                        border-radius: 8px;
+                        padding: 8px 14px;
+                        font-weight: 600;
+                        cursor: pointer;
+                      "
+                    >
+                      Replace cloud with local signs
+                    </button>
+                    <span style="font-size: 0.75rem; opacity: 0.85"
+                      >Upload = append. Replace = wipe this code's cloud signs,
+                      then upload local.</span
+                    >
+                  </div>
+                  <span
+                    id="syncStatus"
+                    aria-live="polite"
+                    style="font-size: 0.75rem; opacity: 0.85"
+                    >Enter the same code on any device to load &amp; auto-sync
+                    your trained signs.</span
+                  >
+                </div>
+                <div
+                  style="
+                    display: flex;
+                    gap: 8px;
+                    flex-wrap: wrap;
+                    align-items: center;
+                    border-top: 1px solid rgba(255, 255, 255, 0.1);
+                    padding-top: 10px;
+                  "
+                >
+                  <button
+                    type="button"
+                    id="trainExportBtn"
+                    style="
+                      background: transparent;
+                      color: #fff;
+                      border: 1px solid rgba(255, 255, 255, 0.3);
+                      border-radius: 8px;
+                      padding: 8px 14px;
+                      font-weight: 600;
+                      cursor: pointer;
+                    "
+                  >
+                    Export trained signs
+                  </button>
+                  <button
+                    type="button"
+                    id="trainImportBtn"
+                    style="
+                      background: transparent;
+                      color: #fff;
+                      border: 1px solid rgba(255, 255, 255, 0.3);
+                      border-radius: 8px;
+                      padding: 8px 14px;
+                      font-weight: 600;
+                      cursor: pointer;
+                    "
+                  >
+                    Import trained signs
+                  </button>
+                  <input
+                    id="trainImportFile"
+                    type="file"
+                    accept="application/json,.json"
+                    style="display: none"
+                  />
+                  <span style="font-size: 0.75rem; opacity: 0.85"
+                    >Signs are saved per-browser. Export to move them to another
+                    machine.</span
+                  >
+                </div>
+              </div>
+            </details>
+          </div>
+
+          <!-- Response input with Speak button -->
+          <div style="margin-bottom: 40px">
+            <label
+              for="fillResponseInput"
+              style="
+                display: block;
+                font-size: 1.1rem;
+                margin-bottom: 10px;
+                color: var(--ink);
+              "
+              >Your response</label
+            >
+            <div
+              style="
+                display: flex;
+                gap: 12px;
+                align-items: stretch;
+                flex-wrap: wrap;
+              "
+            >
+              <input
+                type="text"
+                id="fillResponseInput"
+                class="builder-input"
+                style="
+                  flex: 1;
+                  min-width: 200px;
+                  font-size: 1.1rem;
+                  padding: 16px;
+                "
+                placeholder="Type your answer here..."
+              />
+              <button
+                type="button"
+                id="speakBtn"
+                class="hidden"
+                style="
+                  background: #fff;
+                  border: 2px solid var(--plum);
+                  color: var(--ink);
+                  border-radius: 12px;
+                  padding: 12px 24px;
+                  font-size: 1.05rem;
+                  font-weight: 700;
+                  cursor: pointer;
+                  display: flex;
+                  align-items: center;
+                  gap: 10px;
+                  transition:
+                    background 0.15s ease,
+                    transform 0.15s ease;
+                  white-space: nowrap;
+                "
+              >
+                <svg
+                  aria-hidden="true"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"
+                  ></path>
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                  <line x1="12" y1="19" x2="12" y2="23"></line>
+                  <line x1="8" y1="23" x2="16" y2="23"></line>
+                </svg>
+                <span id="speakBtnText">Speak</span>
+              </button>
+            </div>
+            <p
+              id="speakStatus"
+              aria-live="polite"
+              style="
+                font-size: 0.85rem;
+                color: var(--ink-soft);
+                margin-top: 8px;
+                min-height: 20px;
+              "
+            ></p>
+          </div>
+
+          <!-- Back and Next buttons -->
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-top: 20px;
+            "
+          >
+            <button
+              type="button"
+              id="fillBackBtn"
+              style="
+                background: var(--plum-light);
+                color: var(--plum);
+                border: 2px solid var(--plum);
+                padding: 14px 30px 14px 40px;
+                font-size: 1.2rem;
+                font-weight: 600;
+                cursor: pointer;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                transition:
+                  transform 0.15s ease,
+                  background 0.15s ease;
+              "
+            >
+              <svg
+                aria-hidden="true"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+              </svg>
+              <span>Back</span>
+            </button>
+            <button
+              type="button"
+              id="fillNextBtn"
+              style="
+                background: var(--plum);
+                color: #fff;
+                border: none;
+                padding: 14px 40px 14px 30px;
+                font-size: 1.2rem;
+                font-weight: 600;
+                cursor: pointer;
+                border-radius: 8px;
+                position: relative;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                transition:
+                  transform 0.15s ease,
+                  background 0.15s ease;
+              "
+            >
+              <span>Next</span>
+              <svg
+                aria-hidden="true"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Progress indicator -->
+          <div
+            id="fillProgress"
+            aria-live="polite"
+            aria-atomic="true"
+            style="
+              margin-top: 30px;
+              text-align: center;
+              color: var(--ink-soft);
+              font-size: 0.9rem;
+            "
+          >
+            Field 1 of 3
+          </div>
+        </div>
+        <p class="live-region" id="fillLiveRegion" aria-live="polite"></p>
+      </section>
+
+      <!-- Saved submissions viewer -->
+      <div
+        id="submissionsModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="submissionsModalHeading"
+        class="hidden"
+        style="
+          position: fixed;
+          inset: 0;
+          background: rgba(15, 23, 42, 0.82);
+          z-index: 9999;
+          display: none;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+        "
+      >
+        <div
+          style="
+            background: #fff;
+            border-radius: 12px;
+            max-width: 900px;
+            width: 100%;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+          "
+        >
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              padding: 16px 20px;
+              border-bottom: 1px solid #cbd5e1;
+            "
+          >
+            <h2 id="submissionsModalHeading" style="margin: 0; font-size: 20px">
+              <span aria-hidden="true">📥</span> Saved form submissions
+            </h2>
+            <div style="display: flex; gap: 8px">
+              <button
+                type="button"
+                id="refreshSubmissionsBtn"
+                style="
+                  padding: 6px 12px;
+                  border: 1px solid #94a3b8;
+                  background: #f1f5f9;
+                  border-radius: 6px;
+                  cursor: pointer;
+                "
+              >
+                <span aria-hidden="true">🔄</span> Refresh
+              </button>
+              <button
+                type="button"
+                id="closeSubmissionsBtn"
+                style="
+                  padding: 6px 12px;
+                  border: 1px solid #94a3b8;
+                  background: #f1f5f9;
+                  border-radius: 6px;
+                  cursor: pointer;
+                "
+              >
+                <span aria-hidden="true">✕</span> Close
+              </button>
+            </div>
+          </div>
+          <div
+            id="submissionsList"
+            style="overflow-y: auto; padding: 16px 20px; flex: 1"
+          >
+            <p style="color: #475569">Loading…</p>
+          </div>
+        </div>
+      </div>
+
+      </main>
+
+    <!-- ===================== ACCESSIBILITY STATEMENT (embedded) ===================== -->
+    <div
+      id="accessibilityStatement"
+      role="region"
+      aria-label="Accessibility Statement"
+      tabindex="-1"
+    >
+      <div class="as-topbar">
+        <span class="as-topbar-brand"
+          >AI-enabled Digital Accessibility Platform</span
+        >
+        <button type="button" class="as-back-btn" id="hideStatementBtn">
+          <svg
+            aria-hidden="true"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          Back to application
+        </button>
+      </div>
+
+      <div class="as-wrap">
+        <header>
+          <span class="as-eyebrow">Accessibility</span>
+          <h1 class="as-title">Accessibility Statement</h1>
+          <p class="as-meta">
+            Published by team TechInt as Study Project in term 2, semester 6 of
+            the Bachelor of Science in Computer Science course by BITS
+            Pilani.<br />
+            Last reviewed: <time datetime="2026-07-18">18 July 2026</time>
+          </p>
+        </header>
+
+        <!-- Commitment -->
+        <section class="as-section" aria-labelledby="as-commitment">
+          <h2 id="as-commitment">Our commitment</h2>
+          <p>
+            We are committed to ensuring this platform is accessible to
+            everyone, including people with visual, auditory, motor, cognitive,
+            and speech-related disabilities. Accessibility is built into the
+            product itself - the platform exists to help organisations create
+            accessible forms for their users.
+          </p>
+          <p>
+            We actively work to meet the requirements of the
+            <a href="https://www.w3.org/TR/WCAG22/" rel="noopener noreferrer"
+              >Web Content Accessibility Guidelines (WCAG) 2.2 Level AA</a
+            >, published by the World Wide Web Consortium (W3C).
+          </p>
+        </section>
+
+        <!-- Conformance status -->
+        <section class="as-section" aria-labelledby="as-conformance">
+          <h2 id="as-conformance">Conformance status</h2>
+          <div class="as-badge" role="note">
+            <svg
+              aria-hidden="true"
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            Conformant — WCAG 2.2 Level AA
+          </div>
+          <p>
+            <strong>Target standard:</strong> Web Content Accessibility
+            Guidelines (WCAG) 2.2, Level AA.<br />
+            <strong>Evaluation date:</strong>
+            <time datetime="2026-07-18">18 July 2026</time>.<br />
+            <strong>Evaluation method:</strong> Manual audit combined with
+            assistive technology testing (keyboard-only navigation, VoiceOver on
+            macOS, NVDA on Windows).
+          </p>
+          <h3>Technical specification</h3>
+          <ul class="as-bullets">
+            <li>HTML5, CSS, JavaScript - standard web technologies</li>
+            <li>Relies on browser accessibility APIs (ARIA 1.2)</li>
+            <li>
+              Tested in Chrome 126, Firefox 127, Safari 17 on macOS 14 and
+              Windows 11
+            </li>
+            <li>
+              Tested with VoiceOver (macOS/iOS), NVDA 2024, TalkBack (Android)
+            </li>
+          </ul>
+        </section>
+
+        <!-- Measures taken -->
+        <section class="as-section" aria-labelledby="as-measures">
+          <h2 id="as-measures">Measures taken to support accessibility</h2>
+          <ul class="as-bullets">
+            <li>
+              Skip-to-main-content link at the top of every page for keyboard
+              users
+            </li>
+            <li>
+              All interactive elements reachable and operable by keyboard alone
+            </li>
+            <li>
+              Text-resize controls (A− / A+) in the top bar, up to 200% without
+              loss of content
+            </li>
+            <li>
+              Visible focus indicators on all interactive elements (3 px solid,
+              ≥ 3:1 contrast)
+            </li>
+            <li>
+              Full <code>prefers-reduced-motion</code> support - all animations
+              disabled when requested
+            </li>
+            <li>
+              Semantic HTML5 landmarks (<code>&lt;main&gt;</code>,
+              <code>&lt;nav&gt;</code>, <code>&lt;header&gt;</code>,
+              <code>&lt;section&gt;</code>) throughout
+            </li>
+            <li>
+              ARIA live regions announcing dynamic changes (field progress, form
+              status, speech recognition output)
+            </li>
+            <li>
+              Multiple input modalities: typed text, voice (speech recognition),
+              and hand-sign recognition
+            </li>
+            <li>
+              Persona examples illustrating diverse accessibility needs built
+              into the UI
+            </li>
+            <li>
+              Modal dialogs implement focus trapping, <code>aria-modal</code>,
+              and Escape-to-close
+            </li>
+          </ul>
+        </section>
+
+        <!-- Report a barrier -->
+        <section class="as-section" aria-labelledby="as-feedback">
+          <h2 id="as-feedback">Report an accessibility barrier</h2>
+          <p>
+            If you experience difficulty accessing any part of this platform, or
+            if you find something that does not work with your assistive
+            technology, please let us know. We aim to respond within
+            <strong>5 working days</strong> and to resolve confirmed issues
+            within <strong>30 days</strong>.
+          </p>
+
+          <div class="as-card">
+            <h3>Send us a report</h3>
+            <p>
+              Use the form below, or email us directly at
+              <a href="mailto:techint4project@gmail.com"
+                >techint4project@gmail.com</a
+              >.
+            </p>
+
+            <form class="as-form" id="barrierForm" novalidate>
+              <div class="as-field">
+                <label for="as-name"
+                  >Your name <span aria-hidden="true">(optional)</span></label
+                >
+                <input
+                  type="text"
+                  id="as-name"
+                  name="name"
+                  autocomplete="name"
+                  placeholder="e.g. Priya Sharma"
+                />
+              </div>
+              <div class="as-field">
+                <label for="as-email"
+                  >Email address
+                  <span
+                    style="color: #b91c1c; font-weight: 700"
+                    aria-hidden="true"
+                    >*</span
+                  ><span
+                    style="
+                      position: absolute;
+                      width: 1px;
+                      height: 1px;
+                      overflow: hidden;
+                      clip: rect(0, 0, 0, 0);
+                    "
+                    >(required)</span
+                  ></label
+                >
+                <input
+                  type="email"
+                  id="as-email"
+                  name="email"
+                  autocomplete="email"
+                  placeholder="you@example.com"
+                  required
+                  aria-required="true"
+                />
+              </div>
+              <div class="as-field">
+                <label for="as-type">Type of barrier</label>
+                <select id="as-type" name="barrier_type">
+                  <option value="">— Select one —</option>
+                  <option value="keyboard">Keyboard navigation</option>
+                  <option value="screen-reader">Screen reader</option>
+                  <option value="contrast">Colour / contrast</option>
+                  <option value="zoom">Zoom / text resize</option>
+                  <option value="motion">Motion / animation</option>
+                  <option value="voice">Voice input</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div class="as-field">
+                <label for="as-page"
+                  >Page or feature affected
+                  <span aria-hidden="true">(optional)</span></label
+                >
+                <input
+                  type="text"
+                  id="as-page"
+                  name="page"
+                  placeholder="e.g. Form builder — option selection"
+                />
+              </div>
+              <div class="as-field">
+                <label for="as-desc"
+                  >Description of the barrier
+                  <span
+                    style="color: #b91c1c; font-weight: 700"
+                    aria-hidden="true"
+                    >*</span
+                  ><span
+                    style="
+                      position: absolute;
+                      width: 1px;
+                      height: 1px;
+                      overflow: hidden;
+                      clip: rect(0, 0, 0, 0);
+                    "
+                    >(required)</span
+                  ></label
+                >
+                <textarea
+                  id="as-desc"
+                  name="description"
+                  placeholder="Describe what happened, what you were trying to do, and what assistive technology or browser you were using."
+                  required
+                  aria-required="true"
+                ></textarea>
+              </div>
+              <button type="submit" class="as-submit">Submit report</button>
+              <div
+                id="as-confirm"
+                class="as-confirm"
+                role="status"
+                aria-live="polite"
+              >
+                <svg
+                  aria-hidden="true"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+                Thank you — your report has been received. We will respond
+                within 5 working days.
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <footer class="as-footer">
+          <p>
+            This statement was prepared on
+            <time datetime="2026-07-18">18 July 2026</time> following a manual
+            audit against
+            <a href="https://www.w3.org/TR/WCAG22/" rel="noopener noreferrer"
+              >WCAG 2.2 Level AA</a
+            >. It will be reviewed at least annually and updated whenever
+            significant changes are made to the platform.
+          </p>
+        </footer>
+      </div>
+      <!-- /.as-wrap -->
+    </div>
+    <!-- /#accessibilityStatement -->
+
+    <footer
+      role="contentinfo"
+      style="
+        text-align: center;
+        padding: 30px 24px 50px;
+        color: var(--ink-soft);
+        font-size: 0.9rem;
+        background: var(--blush);
+        border-top: 1px solid var(--line);
+      "
+    >
+      <p style="margin: 0 0 8px 0">
+        &copy; AI-enabled Digital Accessibility Platform
+      </p>
+      <p style="margin: 0">
+        <button
+          type="button"
+          id="showStatementBtn"
+          style="
+            background: none;
+            border: none;
+            color: var(--plum);
+            font-size: 0.95rem;
+            cursor: pointer;
+            padding: 4px 8px;
+            font-family: inherit;
+            text-decoration: underline;
+            font-weight: 600;
+          "
+        >
+          Accessibility statement
+        </button>
+      </p>
+    </footer>
+
+        <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
