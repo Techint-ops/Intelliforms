@@ -16,8 +16,7 @@
  */
 
 export const SUPABASE_URL =
-  (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_SUPABASE_URL) ||
-  "";
+  "https://ryniuomdgndvpdbicpfz.supabase.co";
 
 export const SUPABASE_KEY =
   (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_SUPABASE_ANON_KEY) ||
