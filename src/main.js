@@ -854,6 +854,85 @@ function initKioskAuthModal() {
   if (tabSignInBtn) tabSignInBtn.addEventListener("click", () => setMode("signin"));
   if (tabRegisterBtn) tabRegisterBtn.addEventListener("click", () => setMode("register"));
 
+  const manageSignsBtn = document.getElementById("kioskManageSignsBtn");
+  const onboardModal = document.getElementById("kioskOnboardingModal");
+  const onboardUserSpan = document.getElementById("onboardingUsername");
+  const onboardCalibrateBtn = document.getElementById("onboardingCalibrateBtn");
+  const onboardDefaultBtn = document.getElementById("onboardingDefaultBtn");
+  const onboardSkipBtn = document.getElementById("onboardingSkipBtn");
+
+  function openOnboarding(username) {
+    if (!onboardModal) return;
+    if (onboardUserSpan) onboardUserSpan.textContent = username;
+    onboardModal.style.display = "flex";
+    onboardModal.classList.remove("hidden");
+  }
+
+  function closeOnboarding() {
+    if (!onboardModal) return;
+    onboardModal.style.display = "none";
+    onboardModal.classList.add("hidden");
+  }
+
+  function goToTraining(syncCode) {
+    const trainSection = document.getElementById("trainAppContainer") || document.querySelector("details.train-details");
+    const syncCodeInput = document.getElementById("syncCodeInput");
+    if (syncCodeInput && syncCode) syncCodeInput.value = syncCode;
+    if (trainSection) {
+      if (trainSection.tagName === "DETAILS") trainSection.open = true;
+      trainSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
+  if (manageSignsBtn) {
+    manageSignsBtn.addEventListener("click", () => {
+      closeModal();
+      const profile = getActiveProfile();
+      goToTraining(profile ? profile.username : "");
+    });
+  }
+
+  if (onboardCalibrateBtn) {
+    onboardCalibrateBtn.addEventListener("click", () => {
+      closeOnboarding();
+      const profile = getActiveProfile();
+      goToTraining(profile ? profile.username : "");
+      announce("Navigating to sign calibration studio.");
+    });
+  }
+
+  if (onboardDefaultBtn) {
+    onboardDefaultBtn.addEventListener("click", async () => {
+      onboardDefaultBtn.disabled = true;
+      onboardDefaultBtn.textContent = "Loading standard signs…";
+      try {
+        const syncCodeInput = document.getElementById("syncCodeInput");
+        if (syncCodeInput) syncCodeInput.value = "techint6";
+        await cloudLoadAll("techint6");
+        announce("Standard 26-letter ASL signs loaded successfully.");
+        alert("✅ Standard ASL dataset (26 letters) loaded! You are ready to sign forms.");
+      } catch (err) {
+        console.warn("Default sign load error:", err);
+      } finally {
+        onboardDefaultBtn.disabled = false;
+        onboardDefaultBtn.innerHTML = "<span>⚡</span> Use Standard ASL Signs (Instant)";
+        closeOnboarding();
+      }
+    });
+  }
+
+  if (onboardSkipBtn) {
+    onboardSkipBtn.addEventListener("click", () => {
+      closeOnboarding();
+    });
+  }
+
+  if (onboardModal) {
+    onboardModal.addEventListener("click", (e) => {
+      if (e.target === onboardModal) closeOnboarding();
+    });
+  }
+
   if (submitBtn && usernameInput && pinInput) {
     submitBtn.addEventListener("click", async () => {
       const u = usernameInput.value.trim();
@@ -875,27 +954,32 @@ function initKioskAuthModal() {
 
       try {
         let session;
-        if (authMode === "signin") {
-          session = await loginKioskProfile(u, p);
-        } else {
+        const isRegistering = authMode === "register";
+        if (isRegistering) {
           session = await registerKioskProfile(u, p);
+        } else {
+          session = await loginKioskProfile(u, p);
         }
 
         updateNavProfileUI();
         closeModal();
-        announce(`Signed in as ${session.username}. Personal signs activated.`);
-
-        // Auto-load user's personal ASL gestures into training engine
-        try {
-          const syncCodeInput = document.getElementById("syncCodeInput");
-          if (syncCodeInput) syncCodeInput.value = session.username;
-          await cloudLoadAll(session.username);
-        } catch (syncErr) {
-          console.warn("User gesture auto-sync notice:", syncErr);
-        }
+        announce(`Signed in as ${session.username}.`);
 
         usernameInput.value = "";
         pinInput.value = "";
+
+        if (isRegistering) {
+          openOnboarding(session.username);
+        } else {
+          // Auto-load user's personal ASL gestures if previously trained
+          try {
+            const syncCodeInput = document.getElementById("syncCodeInput");
+            if (syncCodeInput) syncCodeInput.value = session.username;
+            await cloudLoadAll(session.username);
+          } catch (syncErr) {
+            console.warn("User gesture auto-sync notice:", syncErr);
+          }
+        }
       } catch (err) {
         if (errorEl) errorEl.textContent = err.message || String(err);
       } finally {
