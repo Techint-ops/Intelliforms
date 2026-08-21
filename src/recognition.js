@@ -122,7 +122,12 @@ export function onHandResults(results) {
     const custom = matchCustom(vec);
     const mode = getMode();
 
-    if (custom && custom.label) {
+    // Check for hands-free navigation gestures first
+    const navGesture = recognizeNavigationGesture(currentHandLandmarks);
+    if (navGesture) {
+      detected = navGesture;
+      source = "(Gesture Nav)";
+    } else if (custom && custom.label) {
       detected = custom.label;
       source = "(trained · d=" + custom.dist.toFixed(2) + ")";
       // Strong trained match — bypass vote buffer so it appears instantly
@@ -164,19 +169,19 @@ export function onHandResults(results) {
         }
         if (detectedSign) {
           detectedSign.textContent = vote;
-          detectedSign.style.color = "#3B82F6";
+          detectedSign.style.color = vote.includes("NEXT") || vote.includes("PREV") ? "#10B981" : "#3B82F6";
         }
         if (detectedSource) detectedSource.textContent = source;
         if (handStatusOverlay) {
-          handStatusOverlay.textContent = "Sign: " + vote;
-          handStatusOverlay.style.background = "rgba(29, 78, 216, 0.9)";
+          handStatusOverlay.textContent = (vote.includes("NEXT") || vote.includes("PREV") ? "Nav: " : "Sign: ") + vote;
+          handStatusOverlay.style.background = vote.includes("NEXT") ? "rgba(16, 185, 129, 0.9)" : "rgba(29, 78, 216, 0.9)";
         }
         if (captureSignBtn) {
           captureSignBtn.disabled = false;
           captureSignBtn.style.opacity = "1";
         }
 
-        // Hold-to-append
+        // Hold-to-append / Hold-to-navigate
         const held = performance.now() - holdStartTs;
         const pct = Math.min(100, (held / holdTarget) * 100);
         if (holdBar) holdBar.style.width = pct + "%";
@@ -186,9 +191,15 @@ export function onHandResults(results) {
           appendedSign !== vote &&
           performance.now() > cooldownUntil
         ) {
-          appendSignToResponse(vote);
+          if (vote === "👍 NEXT") {
+            document.dispatchEvent(new CustomEvent("asl-navigate", { detail: { action: "next" } }));
+          } else if (vote === "👎 PREV") {
+            document.dispatchEvent(new CustomEvent("asl-navigate", { detail: { action: "previous" } }));
+          } else {
+            appendSignToResponse(vote);
+          }
           appendedSign = vote;
-          cooldownUntil = performance.now() + 400;
+          cooldownUntil = performance.now() + 600;
           if (holdBar) holdBar.style.width = "100%";
           if (holdWrap) holdWrap.setAttribute("aria-valuenow", 100);
         }
@@ -295,6 +306,50 @@ export function isFingerExtended(landmarks, mcp, pip, dip, tip) {
   if (tipY < pipY - 0.05) return 1;
   if (tipY > pipY + 0.05) return 0;
   return 0.5; // partially extended
+}
+
+/**
+ * Detect Hands-Free Navigation Gestures:
+ *  - Thumbs-Up (👍): Next Form Field
+ *  - Thumbs-Down (👎): Previous Form Field
+ */
+export function recognizeNavigationGesture(landmarks) {
+  if (!landmarks || landmarks.length < 21) return null;
+  const wrist = landmarks[0];
+  const thumbTip = landmarks[4];
+  const thumbIP = landmarks[3];
+  const thumbMCP = landmarks[2];
+  const indexTip = landmarks[8];
+  const indexMCP = landmarks[5];
+  const middleTip = landmarks[12];
+  const middleMCP = landmarks[9];
+  const ringTip = landmarks[16];
+  const ringMCP = landmarks[13];
+  const pinkyTip = landmarks[20];
+  const pinkyMCP = landmarks[17];
+
+  function dist(p1, p2) {
+    return Math.hypot(p1.x - p2.x, p1.y - p2.y);
+  }
+
+  // All non-thumb fingers must be curled close to palm
+  const idxCurled = dist(indexTip, wrist) < dist(indexMCP, wrist) * 1.15;
+  const midCurled = dist(middleTip, wrist) < dist(middleMCP, wrist) * 1.15;
+  const ringCurled = dist(ringTip, wrist) < dist(ringMCP, wrist) * 1.15;
+  const pinkyCurled = dist(pinkyTip, wrist) < dist(pinkyMCP, wrist) * 1.15;
+  const fingersCurled = idxCurled && midCurled && ringCurled && pinkyCurled;
+
+  if (fingersCurled) {
+    // Thumbs-Up: Thumb tip pointing straight UP (above IP & index MCP)
+    if (thumbTip.y < thumbIP.y - 0.03 && thumbTip.y < indexMCP.y - 0.06) {
+      return "👍 NEXT";
+    }
+    // Thumbs-Down: Thumb tip pointing straight DOWN (below IP & wrist)
+    if (thumbTip.y > thumbIP.y + 0.03 && thumbTip.y > wrist.y + 0.02) {
+      return "👎 PREV";
+    }
+  }
+  return null;
 }
 
 /**

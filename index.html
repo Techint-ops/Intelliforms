@@ -449,6 +449,14 @@
           <div id="stepCount">
             <p class="builder-step-label">Step 1</p>
             <h2 id="builder-heading">Customize your form</h2>
+            <div style="margin-bottom: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px;">
+              <span style="font-size: 0.85rem; font-weight: 700; color: #475569; display: block; margin-bottom: 8px;">⚡ Quick-Start Accessible Templates:</span>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button type="button" class="form-template-btn" data-template="medical" style="background:#eff6ff; border:1px solid #93c5fd; color:#1e40af; border-radius:6px; padding:6px 12px; font-size:0.85rem; font-weight:600; cursor:pointer;">🏥 Medical Intake</button>
+                <button type="button" class="form-template-btn" data-template="student" style="background:#f0fdf4; border:1px solid #86efac; color:#166534; border-radius:6px; padding:6px 12px; font-size:0.85rem; font-weight:600; cursor:pointer;">🎓 Student Registration</button>
+                <button type="button" class="form-template-btn" data-template="job" style="background:#faf5ff; border:1px solid #d8b4fe; color:#6b21a8; border-radius:6px; padding:6px 12px; font-size:0.85rem; font-weight:600; cursor:pointer;">💼 Job Application</button>
+              </div>
+            </div>
             <div class="builder-row">
               <label for="formNameInput">Name of your form:</label>
               <input
@@ -1635,7 +1643,37 @@
             <h2 id="submissionsModalHeading" style="margin: 0; font-size: 20px">
               <span aria-hidden="true">📥</span> Saved form submissions
             </h2>
-            <div style="display: flex; gap: 8px">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button
+                type="button"
+                id="exportCsvBtn"
+                style="
+                  padding: 6px 12px;
+                  border: 1px solid #059669;
+                  background: #ecfdf5;
+                  color: #065f46;
+                  font-weight: 600;
+                  border-radius: 6px;
+                  cursor: pointer;
+                "
+              >
+                <span aria-hidden="true">📊</span> Export CSV
+              </button>
+              <button
+                type="button"
+                id="printPdfBtn"
+                style="
+                  padding: 6px 12px;
+                  border: 1px solid #6366f1;
+                  background: #eef2ff;
+                  color: #4338ca;
+                  font-weight: 600;
+                  border-radius: 6px;
+                  cursor: pointer;
+                "
+              >
+                <span aria-hidden="true">🖨️</span> Print PDF
+              </button>
               <button
                 type="button"
                 id="refreshSubmissionsBtn"

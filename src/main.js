@@ -604,10 +604,98 @@ function initSubmissionsModal() {
     modal.classList.add("hidden");
   }
 
+  const exportCsvBtn = document.getElementById("exportCsvBtn");
+  const printPdfBtn = document.getElementById("printPdfBtn");
+
   if (viewBtn) viewBtn.addEventListener("click", openSubmissions);
   if (navViewBtn) navViewBtn.addEventListener("click", openSubmissions);
   if (closeBtn) closeBtn.addEventListener("click", closeSubmissions);
   if (refreshBtn) refreshBtn.addEventListener("click", loadSubmissions);
+
+  if (exportCsvBtn) {
+    exportCsvBtn.addEventListener("click", () => {
+      fetchFormSubmissions(500).then((res) => {
+        const data = res.data || [];
+        if (!data.length) {
+          alert("No submissions available to export.");
+          return;
+        }
+        let csv = "ID,Timestamp,Form Name,Field Name,Field Type,Answer\n";
+        data.forEach((row, rIdx) => {
+          const id = String(row.id || "local-" + rIdx);
+          const time = row.created_at || "";
+          const name = (row.form_name || "Untitled Form").replace(/"/g, '""');
+          const responses = Array.isArray(row.responses) ? row.responses : [];
+          responses.forEach((resp) => {
+            const fName = (resp.name || "").replace(/"/g, '""');
+            const fType = (resp.type || "text").replace(/"/g, '""');
+            const ans = (resp.answer || "").replace(/"/g, '""');
+            csv += `"${id}","${time}","${name}","${fName}","${fType}","${ans}"\n`;
+          });
+        });
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "intelliform-submissions-" + new Date().toISOString().slice(0, 10) + ".csv";
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 100);
+      });
+    });
+  }
+
+  if (printPdfBtn) {
+    printPdfBtn.addEventListener("click", () => {
+      fetchFormSubmissions(500).then((res) => {
+        const data = res.data || [];
+        if (!data.length) {
+          alert("No submissions available to print.");
+          return;
+        }
+        const printWindow = window.open("", "_blank");
+        if (!printWindow) {
+          alert("Please allow popups to print / save as PDF.");
+          return;
+        }
+        let html = `<!DOCTYPE html><html><head><title>Intelliform Submissions Report</title><style>
+          body { font-family: system-ui, -apple-system, sans-serif; padding: 24px; color: #0f172a; line-height: 1.5; }
+          h1 { font-size: 22px; border-bottom: 2px solid #0f172a; padding-bottom: 8px; margin-bottom: 16px; }
+          .card { border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px; margin-bottom: 16px; page-break-inside: avoid; }
+          .meta { font-size: 13px; color: #64748b; margin-bottom: 8px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 14px; }
+          th, td { border: 1px solid #e2e8f0; padding: 8px 12px; text-align: left; }
+          th { background: #f8fafc; font-weight: 600; }
+        </style></head><body>`;
+        html += `<h1>♿ Intelliform — Form Submissions Report</h1>`;
+        html += `<p style="font-size:13px; color:#64748b;">Generated on: ${new Date().toLocaleString()} | Total Submissions: ${data.length}</p>`;
+        data.forEach((row, i) => {
+          html += `<div class="card">`;
+          html += `<div style="font-weight:700; font-size:16px;">#${i + 1} — ${escapeHtml(row.form_name || "Untitled Form")}</div>`;
+          html += `<div class="meta">Submitted: ${fmtDate(row.created_at)} | ID: ${escapeHtml(row.id || "local")}</div>`;
+          if (Array.isArray(row.responses) && row.responses.length) {
+            html += `<table><thead><tr><th>Field</th><th>Answer</th></tr></thead><tbody>`;
+            row.responses.forEach((r) => {
+              html += `<tr><td><strong>${escapeHtml(r.name)}</strong></td><td>${escapeHtml(r.answer || "(empty)")}</td></tr>`;
+            });
+            html += `</tbody></table>`;
+          }
+          html += `</div>`;
+        });
+        html += `</body></html>`;
+        printWindow.document.open();
+        printWindow.document.write(html);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => {
+          printWindow.print();
+        }, 300);
+      });
+    });
+  }
 
   if (modal) {
     modal.addEventListener("click", (e) => {
@@ -839,6 +927,55 @@ function initApp() {
     });
   }
 
+  // Quick-Start Templates
+  const templateBtns = document.querySelectorAll(".form-template-btn");
+  const templates = {
+    medical: {
+      name: "Patient Medical Intake",
+      fields: [
+        { name: "Full Name", type: "alphabetical" },
+        { name: "Date of Birth", type: "numerical" },
+        { name: "Medical Allergies", type: "alphabetical" },
+        { name: "Emergency Contact", type: "numerical" },
+      ],
+    },
+    student: {
+      name: "Student Registration",
+      fields: [
+        { name: "Student Full Name", type: "alphabetical" },
+        { name: "Student ID", type: "alphanumerical" },
+        { name: "Accommodations Needed", type: "alphabetical" },
+        { name: "Emergency Email", type: "alphanumerical" },
+      ],
+    },
+    job: {
+      name: "Job Application",
+      fields: [
+        { name: "Applicant Full Name", type: "alphabetical" },
+        { name: "Email Address", type: "alphanumerical" },
+        { name: "Position Applied", type: "alphabetical" },
+        { name: "Years of Experience", type: "numerical" },
+      ],
+    },
+  };
+
+  templateBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const key = btn.getAttribute("data-template");
+      const tmpl = templates[key];
+      if (!tmpl) return;
+      formName = tmpl.name;
+      totalFields = tmpl.fields.length;
+      collectedFields = tmpl.fields.slice();
+      currentFieldIndex = 0;
+      if (formNameInput) formNameInput.value = tmpl.name;
+      if (fieldCountInput) fieldCountInput.value = tmpl.fields.length;
+      renderSummary();
+      showStep("summary");
+      announceBuilder(`Loaded ${tmpl.name} with ${totalFields} fields.`);
+    });
+  });
+
   if (backToChooserBtn) {
     backToChooserBtn.addEventListener("click", () => {
       const builderSection = document.getElementById("builderSection");
@@ -1006,6 +1143,26 @@ function initApp() {
       }
     });
   }
+
+  // Hands-Free ASL Gesture Navigation Listener
+  document.addEventListener("asl-navigate", (e) => {
+    const action = e.detail && e.detail.action;
+    const fillNextBtn = document.getElementById("fillNextBtn");
+    const fillBackBtn = document.getElementById("fillBackBtn");
+    const fillLiveRegion = document.getElementById("fillLiveRegion");
+
+    if (action === "next") {
+      if (fillNextBtn && !fillNextBtn.disabled) {
+        if (fillLiveRegion) fillLiveRegion.textContent = "Gesture Navigation: Next Field";
+        fillNextBtn.click();
+      }
+    } else if (action === "previous") {
+      if (fillBackBtn && !fillBackBtn.disabled) {
+        if (fillLiveRegion) fillLiveRegion.textContent = "Gesture Navigation: Previous Field";
+        fillBackBtn.click();
+      }
+    }
+  });
 }
 
 if (document.readyState === "loading") {
