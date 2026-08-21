@@ -105,5 +105,114 @@ export async function deleteFormSubmission(id, localIdx) {
   return { source: "local" };
 }
 
+/* ---------------- Kiosk & Public Profile Authentication ---------------- */
+
+const PROFILE_SESSION_KEY = "kiosk_active_profile.v1";
+const LOCAL_PROFILES_KEY = "kiosk_profiles_db.v1";
+
+export function getActiveProfile() {
+  try {
+    return JSON.parse(localStorage.getItem(PROFILE_SESSION_KEY)) || null;
+  } catch (e) {
+    return null;
+  }
+}
+
+export function setActiveProfile(profile) {
+  if (profile) {
+    localStorage.setItem(PROFILE_SESSION_KEY, JSON.stringify(profile));
+  } else {
+    localStorage.removeItem(PROFILE_SESSION_KEY);
+  }
+}
+
+export async function registerKioskProfile(username, pin) {
+  const cleanUser = String(username || "").trim().toLowerCase();
+  const cleanPin = String(pin || "").trim();
+  if (!cleanUser || cleanUser.length < 3) throw new Error("Username must be at least 3 characters");
+  if (!/^\d{4}$/.test(cleanPin)) throw new Error("PIN must be exactly 4 digits");
+
+  const newProfile = {
+    username: cleanUser,
+    pin: cleanPin,
+    created_at: new Date().toISOString(),
+  };
+
+  if (sb) {
+    try {
+      const check = await sb.from("user_profiles").select("username").eq("username", cleanUser).maybeSingle();
+      if (check && check.data) {
+        throw new Error("Username already taken. Please choose another username.");
+      }
+      await sb.from("user_profiles").insert(newProfile);
+    } catch (e) {
+      if (e.message && e.message.includes("already taken")) throw e;
+      console.warn("Cloud profile registration fallback to local:", e);
+    }
+  }
+
+  const profiles = JSON.parse(localStorage.getItem(LOCAL_PROFILES_KEY) || "{}");
+  if (profiles[cleanUser]) {
+    throw new Error("Username already exists on this device.");
+  }
+  profiles[cleanUser] = newProfile;
+  localStorage.setItem(LOCAL_PROFILES_KEY, JSON.stringify(profiles));
+
+  const session = { username: cleanUser, logged_in_at: new Date().toISOString() };
+  setActiveProfile(session);
+  return session;
+}
+
+export async function loginKioskProfile(username, pin) {
+  const cleanUser = String(username || "").trim().toLowerCase();
+  const cleanPin = String(pin || "").trim();
+  if (!cleanUser) throw new Error("Please enter your username");
+  if (!/^\d{4}$/.test(cleanPin)) throw new Error("PIN must be 4 digits");
+
+  if (sb) {
+    try {
+      const res = await sb
+        .from("user_profiles")
+        .select("username,pin")
+        .eq("username", cleanUser)
+        .maybeSingle();
+
+      if (res && res.data) {
+        if (res.data.pin === cleanPin) {
+          const session = { username: cleanUser, logged_in_at: new Date().toISOString() };
+          setActiveProfile(session);
+          return session;
+        } else {
+          throw new Error("Incorrect 4-digit PIN.");
+        }
+      }
+    } catch (e) {
+      if (e.message && (e.message.includes("PIN") || e.message.includes("Incorrect"))) throw e;
+      console.warn("Cloud auth check falling back to local storage:", e);
+    }
+  }
+
+  const profiles = JSON.parse(localStorage.getItem(LOCAL_PROFILES_KEY) || "{}");
+  const profile = profiles[cleanUser];
+  if (!profile) {
+    profiles[cleanUser] = { username: cleanUser, pin: cleanPin, created_at: new Date().toISOString() };
+    localStorage.setItem(LOCAL_PROFILES_KEY, JSON.stringify(profiles));
+    const session = { username: cleanUser, logged_in_at: new Date().toISOString() };
+    setActiveProfile(session);
+    return session;
+  }
+  if (profile.pin !== cleanPin) {
+    throw new Error("Incorrect 4-digit PIN.");
+  }
+  const session = { username: cleanUser, logged_in_at: new Date().toISOString() };
+  setActiveProfile(session);
+  return session;
+}
+
+export function logoutKioskProfile() {
+  setActiveProfile(null);
+}
+
 export default sb;
+
 

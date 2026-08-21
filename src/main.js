@@ -30,7 +30,15 @@ import {
   saveFormSubmission,
   fetchFormSubmissions,
   deleteFormSubmission,
+  getActiveProfile,
+  registerKioskProfile,
+  loginKioskProfile,
+  logoutKioskProfile,
 } from "./supabase-client.js";
+
+import {
+  cloudLoadAll,
+} from "./train.js";
 
 import {
   getPersonaState,
@@ -400,8 +408,10 @@ function submitForm() {
     summary += "• " + f.name + ": " + (fillResponses[i] || "(no answer)") + "\n";
   });
 
+  const activeProfile = getActiveProfile();
   const payload = {
     form_name: formName || "Untitled Form",
+    username: activeProfile ? activeProfile.username : "guest",
     fields: fillCollectedFields.map((f) => ({
       name: f.name,
       type: f.type,
@@ -762,6 +772,163 @@ function initAccessibilityModal() {
   }
 }
 
+/* ---------------- Kiosk Profile & Quick PIN Auth ---------------- */
+
+function initKioskAuthModal() {
+  const modal = document.getElementById("kioskAuthModal");
+  const navBtn = document.getElementById("kioskProfileNavBtn");
+  const navLabel = document.getElementById("kioskProfileNavLabel");
+  const closeBtn = document.getElementById("closeKioskAuthBtn");
+  const formBox = document.getElementById("kioskAuthFormBox");
+  const loggedInBox = document.getElementById("kioskLoggedInBox");
+  const activeUserLabel = document.getElementById("kioskActiveUserLabel");
+  const tabSignInBtn = document.getElementById("tabSignInBtn");
+  const tabRegisterBtn = document.getElementById("tabRegisterBtn");
+  const usernameInput = document.getElementById("kioskUsernameInput");
+  const pinInput = document.getElementById("kioskPinInput");
+  const errorEl = document.getElementById("kioskAuthError");
+  const submitBtn = document.getElementById("kioskSubmitAuthBtn");
+  const logoutBtn = document.getElementById("kioskLogoutBtn");
+
+  let authMode = "signin"; // "signin" | "register"
+
+  function updateNavProfileUI() {
+    const profile = getActiveProfile();
+    if (profile && profile.username) {
+      if (navLabel) navLabel.textContent = profile.username;
+      if (navBtn) navBtn.style.background = "rgba(37, 99, 235, 0.4)";
+      if (formBox) formBox.classList.add("hidden");
+      if (loggedInBox) loggedInBox.classList.remove("hidden");
+      if (activeUserLabel) activeUserLabel.textContent = profile.username;
+    } else {
+      if (navLabel) navLabel.textContent = "Kiosk Login";
+      if (navBtn) navBtn.style.background = "rgba(255, 255, 255, 0.15)";
+      if (formBox) formBox.classList.remove("hidden");
+      if (loggedInBox) loggedInBox.classList.add("hidden");
+    }
+  }
+
+  function openModal() {
+    if (!modal) return;
+    updateNavProfileUI();
+    modal.style.display = "flex";
+    modal.classList.remove("hidden");
+    if (errorEl) errorEl.textContent = "";
+    if (usernameInput && !getActiveProfile()) usernameInput.focus();
+  }
+
+  function closeModal() {
+    if (!modal) return;
+    modal.style.display = "none";
+    modal.classList.add("hidden");
+  }
+
+  function setMode(mode) {
+    authMode = mode;
+    if (errorEl) errorEl.textContent = "";
+    if (mode === "signin") {
+      if (tabSignInBtn) {
+        tabSignInBtn.style.background = "#fff";
+        tabSignInBtn.style.color = "#0f172a";
+      }
+      if (tabRegisterBtn) {
+        tabRegisterBtn.style.background = "transparent";
+        tabRegisterBtn.style.color = "#64748b";
+      }
+      if (submitBtn) submitBtn.textContent = "Sign In to Kiosk";
+    } else {
+      if (tabRegisterBtn) {
+        tabRegisterBtn.style.background = "#fff";
+        tabRegisterBtn.style.color = "#0f172a";
+      }
+      if (tabSignInBtn) {
+        tabSignInBtn.style.background = "transparent";
+        tabSignInBtn.style.color = "#64748b";
+      }
+      if (submitBtn) submitBtn.textContent = "Create Kiosk Profile";
+    }
+  }
+
+  if (navBtn) navBtn.addEventListener("click", openModal);
+  if (closeBtn) closeBtn.addEventListener("click", closeModal);
+  if (tabSignInBtn) tabSignInBtn.addEventListener("click", () => setMode("signin"));
+  if (tabRegisterBtn) tabRegisterBtn.addEventListener("click", () => setMode("register"));
+
+  if (submitBtn && usernameInput && pinInput) {
+    submitBtn.addEventListener("click", async () => {
+      const u = usernameInput.value.trim();
+      const p = pinInput.value.trim();
+      if (!u) {
+        if (errorEl) errorEl.textContent = "Enter your username.";
+        usernameInput.focus();
+        return;
+      }
+      if (!p || p.length !== 4) {
+        if (errorEl) errorEl.textContent = "Enter a 4-digit PIN.";
+        pinInput.focus();
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Authenticating…";
+      if (errorEl) errorEl.textContent = "";
+
+      try {
+        let session;
+        if (authMode === "signin") {
+          session = await loginKioskProfile(u, p);
+        } else {
+          session = await registerKioskProfile(u, p);
+        }
+
+        updateNavProfileUI();
+        closeModal();
+        announce(`Signed in as ${session.username}. Personal signs activated.`);
+
+        // Auto-load user's personal ASL gestures into training engine
+        try {
+          const syncCodeInput = document.getElementById("syncCodeInput");
+          if (syncCodeInput) syncCodeInput.value = session.username;
+          await cloudLoadAll(session.username);
+        } catch (syncErr) {
+          console.warn("User gesture auto-sync notice:", syncErr);
+        }
+
+        usernameInput.value = "";
+        pinInput.value = "";
+      } catch (err) {
+        if (errorEl) errorEl.textContent = err.message || String(err);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = authMode === "signin" ? "Sign In to Kiosk" : "Create Kiosk Profile";
+      }
+    });
+  }
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      logoutKioskProfile();
+      updateNavProfileUI();
+      announce("Logged out from kiosk session.");
+      closeModal();
+    });
+  }
+
+  if (modal) {
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) closeModal();
+    });
+  }
+
+  updateNavProfileUI();
+  const existing = getActiveProfile();
+  if (existing && existing.username) {
+    try {
+      cloudLoadAll(existing.username);
+    } catch (e) {}
+  }
+}
+
 /* ---------------- Text Scaling Controls ---------------- */
 
 function initTextScaling() {
@@ -895,7 +1062,8 @@ function initApp() {
   // 4. Initialize ASL Train Panel & Cloud Sync
   initTrainPanel(getCurrentLandmarks);
 
-  // 5. Initialize Modals and Accessibility tools
+  // 5. Initialize Modals, Kiosk Profile, and Accessibility tools
+  initKioskAuthModal();
   initSubmissionsModal();
   initAccessibilityModal();
   initTextScaling();
