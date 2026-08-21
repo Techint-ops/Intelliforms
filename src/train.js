@@ -64,15 +64,17 @@ export async function cloudLoadAll(code) {
       .select("label,vector")
       .eq("sync_code", cloudKey(code, m));
     if (res.error) throw res.error;
-    if (!customSignsByMode[m]) customSignsByMode[m] = {};
-    const bank = customSignsByMode[m];
-    (res.data || []).forEach((row) => {
-      if (!bank[row.label]) bank[row.label] = [];
-      if (Array.isArray(row.vector)) {
-        bank[row.label].push(row.vector);
-        loaded++;
-      }
-    });
+    if (res.data && res.data.length > 0) {
+      customSignsByMode[m] = {};
+      const bank = customSignsByMode[m];
+      res.data.forEach((row) => {
+        if (!bank[row.label]) bank[row.label] = [];
+        if (Array.isArray(row.vector)) {
+          bank[row.label].push(row.vector);
+          loaded++;
+        }
+      });
+    }
   }
   saveCustomSigns();
   return loaded;
@@ -380,6 +382,14 @@ export function initTrainPanel(getCurrentLandmarks) {
       }
       setSyncStatus('Uploading ' + rows.length + ' sample(s) to "' + syncCode + '"…');
       try {
+        // Clear previous cloud entries for this sync_code so duplicates do not accumulate
+        for (let mi2 = 0; mi2 < modes.length; mi2++) {
+          await client
+            .from("trained_signs")
+            .delete()
+            .eq("sync_code", cloudKey(syncCode, modes[mi2]));
+        }
+
         const CHUNK = 100;
         let uploaded = 0;
         for (let i = 0; i < rows.length; i += CHUNK) {
@@ -568,16 +578,30 @@ export function initTrainPanel(getCurrentLandmarks) {
           });
           saveCustomSigns();
           refreshTrainList();
-          if (trainStatus) {
-            trainStatus.textContent =
-              "Imported " + added + " samples. Trained signs are now active.";
-          }
         } catch (e) {
           if (trainStatus) trainStatus.textContent = "Import failed: " + e.message;
         }
         trainImportFile.value = "";
       };
       reader.readAsText(file);
+    });
+  }
+
+  const trainResetAllBtn = document.getElementById("trainResetAllBtn");
+  if (trainResetAllBtn) {
+    trainResetAllBtn.addEventListener("click", () => {
+      if (
+        !confirm(
+          "Are you sure you want to clear all locally trained signs on this device? This will reset your sign list.",
+        )
+      )
+        return;
+      customSignsByMode = { letter: {}, number: {} };
+      saveCustomSigns();
+      refreshTrainList();
+      if (trainStatus) {
+        trainStatus.textContent = "All local trained signs have been cleared.";
+      }
     });
   }
 
