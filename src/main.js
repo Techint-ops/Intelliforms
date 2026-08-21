@@ -470,11 +470,11 @@ function renderSubmissions(rows, source) {
   const listEl = document.getElementById("submissionsList");
   if (!listEl) return;
   if (!rows || !rows.length) {
-    listEl.innerHTML = '<p style="color:#475569;">No submissions saved yet.</p>';
+    listEl.innerHTML = '<p style="color:#475569; font-size:1.15rem; padding: 12px 0;">No submissions saved yet.</p>';
     return;
   }
   let html =
-    '<p style="color:#475569; font-size:13px; margin:0 0 12px;">Showing ' +
+    '<p style="color:#475569; font-size:1.05rem; margin:0 0 16px; font-weight: 600;">Showing ' +
     rows.length +
     " submission(s) from " +
     source +
@@ -483,23 +483,23 @@ function renderSubmissions(rows, source) {
     const id = row.id != null ? row.id : "local:" + idx;
     const isCloud = row.id != null;
     html +=
-      '<div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:14px 16px; margin-bottom:12px;">';
+      '<div style="background:#f8fafc; border:2px solid #e2e8f0; border-radius:12px; padding:20px 22px; margin-bottom:18px;">';
     html +=
-      '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; gap:8px;">';
+      '<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; gap:12px; flex-wrap: wrap;">';
     html += "<div>";
     html +=
-      '<strong style="color:#1e3a8a; font-size:16px;">' +
+      '<strong style="color:#1e3a8a; font-size:1.3rem;">' +
       escapeHtml(row.form_name || "Untitled Form") +
       "</strong>";
     html +=
-      '<span style="display:inline-block; margin-left:8px; background:' +
+      '<span style="display:inline-block; margin-left:10px; background:' +
       (isCloud ? "#dcfce7; color:#166534" : "#fef3c7; color:#92400e") +
-      '; font-size:11px; font-weight:600; padding:2px 8px; border-radius:999px;">' +
+      '; font-size:0.95rem; font-weight:700; padding:4px 12px; border-radius:999px;">' +
       (isCloud ? "Cloud" : "Local") +
       "</span>";
     html += "</div>";
     html +=
-      '<span style="color:#64748b; font-size:12px;">' +
+      '<span style="color:#64748b; font-size:0.95rem; font-weight: 600;">' +
       escapeHtml(fmtDate(row.created_at)) +
       "</span>";
     html += "</div>";
@@ -510,38 +510,38 @@ function renderSubmissions(rows, source) {
     const detailsMode = row.details_mode || firstField.details_mode || "—";
 
     html +=
-      '<div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; font-size:12px;">';
+      '<div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; font-size:0.95rem;">';
     html +=
-      '<span style="background:#e0e7ff; color:#3730a3; padding:2px 8px; border-radius:4px;">Persona: ' +
+      '<span style="background:#e0e7ff; color:#3730a3; padding:4px 12px; border-radius:6px; font-weight:600;">Persona: ' +
       escapeHtml(persona) +
       "</span>";
     html +=
-      '<span style="background:#ede9fe; color:#5b21b6; padding:2px 8px; border-radius:4px;">Field: ' +
+      '<span style="background:#ede9fe; color:#5b21b6; padding:4px 12px; border-radius:6px; font-weight:600;">Field: ' +
       escapeHtml(fieldMode) +
       "</span>";
     html +=
-      '<span style="background:#fae8ff; color:#86198f; padding:2px 8px; border-radius:4px;">Details: ' +
+      '<span style="background:#fae8ff; color:#86198f; padding:4px 12px; border-radius:6px; font-weight:600;">Details: ' +
       escapeHtml(detailsMode) +
       "</span>";
     html += "</div>";
 
     if (row.responses && row.responses.length) {
       html +=
-        '<table style="width:100%; border-collapse:collapse; font-size:13px; background:#fff; border-radius:6px; overflow:hidden; border:1px solid #e2e8f0;">';
+        '<table style="width:100%; border-collapse:collapse; font-size:1.05rem; background:#fff; border-radius:8px; overflow:hidden; border:1.5px solid #e2e8f0; margin-bottom: 12px;">';
       html +=
-        '<thead><tr style="background:#f1f5f9; text-align:left;"><th style="padding:6px 10px; color:#475569;">Field</th><th style="padding:6px 10px; color:#475569;">Answer</th></tr></thead>';
+        '<thead><tr style="background:#f1f5f9; text-align:left;"><th style="padding:10px 14px; color:#334155; font-size:1.05rem;">Field</th><th style="padding:10px 14px; color:#334155; font-size:1.05rem;">Answer</th></tr></thead>';
       html += "<tbody>";
       row.responses.forEach((r) => {
         html +=
-          '<tr style="border-top:1px solid #f1f5f9;"><td style="padding:6px 10px; font-weight:500;">' +
+          '<tr style="border-top:1px solid #e2e8f0;"><td style="padding:10px 14px; font-weight:600; color:#1e293b;">' +
           escapeHtml(r.name) +
-          '</td><td style="padding:6px 10px; color:#0f172a;">' +
+          '</td><td style="padding:10px 14px; color:#0f172a; font-weight:500;">' +
           escapeHtml(r.answer || "(empty)") +
           "</td></tr>";
       });
       html += "</tbody></table>";
     } else {
-      html += '<p style="color:#64748b; font-size:12px; margin:0;">No response items recorded.</p>';
+      html += '<p style="color:#64748b; font-size:0.95rem; margin:0 0 12px 0;">No response items recorded.</p>';
     }
 
     html +=
@@ -549,7 +549,7 @@ function renderSubmissions(rows, source) {
       escapeHtml(id) +
       '" data-idx="' +
       idx +
-      '" style="background:transparent; border:1px solid #fca5a5; color:#dc2626; padding:4px 10px; border-radius:4px; font-size:12px; cursor:pointer;">🗑 Delete</button></div>';
+      '" style="background:#fff; border:1.5px solid #f87171; color:#dc2626; padding:8px 16px; min-height:40px; border-radius:8px; font-size:0.95rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">🗑 Delete Submission</button></div>';
     html += "</div>";
   });
   listEl.innerHTML = html;
