@@ -3,3 +3,11 @@ dist
 .env
 .env.local
 .DS_Store
+browser-tools-mcp
+*test*.mjs
+*simulation*.mjs
+test/
+tests/
+*.spec.*
+*.test.*
+
