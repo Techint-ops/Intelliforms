@@ -23,46 +23,67 @@ export const SUPABASE_KEY =
   (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_SUPABASE_ANON_KEY) ||
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlteXBvcnRnZHpidW9pc3Ntam5yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODczMzQxNDIsImV4cCI6MjEwMjkxMDE0Mn0.6j4nAPy9wtIDV7vTH0iPEU9osrjdvDC79SMn_7TOspk";
 
-export const sb =
-  typeof window !== "undefined" && window.supabase && window.supabase.createClient && SUPABASE_URL && SUPABASE_KEY
-    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
-    : null;
+export function getSupabase() {
+  if (typeof window !== "undefined" && window.supabase && window.supabase.createClient && SUPABASE_URL && SUPABASE_KEY) {
+    if (!window._sbClient) {
+      window._sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    }
+    return window._sbClient;
+  }
+  return null;
+}
 
-// Expose sb to window for interoperability across modules
+export const sb = getSupabase();
+
 if (typeof window !== "undefined") {
   window.sb = sb;
 }
 
 /**
- * Save a form submission to Supabase `form_submissions` table or localStorage fallback.
+ * Save a form submission to Supabase `form_submissions` table and localStorage backup.
  */
 export async function saveFormSubmission(payload) {
-  if (sb) {
+  const key = "form_submissions";
+  const localItem = Object.assign({ id: "local-" + Date.now(), created_at: new Date().toISOString() }, payload);
+  const list = JSON.parse(localStorage.getItem(key) || "[]");
+  list.unshift(localItem);
+  localStorage.setItem(key, JSON.stringify(list));
+
+  const client = getSupabase();
+  if (client) {
     try {
-      const res = await sb.from("form_submissions").insert(payload);
+      // 1. Try full payload
+      let res = await client.from("form_submissions").insert(payload).select();
       if (res && res.error) {
-        throw res.error;
+        // 2. If column mismatch (e.g. username column not in DB yet), fallback to standard columns
+        const standardPayload = {
+          form_name: payload.form_name || "Untitled Form",
+          fields: payload.fields || [],
+          responses: payload.responses || [],
+        };
+        res = await client.from("form_submissions").insert(standardPayload).select();
+        if (res && res.error) throw res.error;
       }
       return { source: "cloud", data: res.data };
     } catch (e) {
-      console.warn("Cloud save failed, saving locally:", e);
+      console.warn("Cloud save failed, saved locally:", e);
     }
   }
-  
-  const key = "form_submissions";
-  const list = JSON.parse(localStorage.getItem(key) || "[]");
-  list.push(Object.assign({ created_at: new Date().toISOString() }, payload));
-  localStorage.setItem(key, JSON.stringify(list));
+
   return { source: "local" };
 }
 
 /**
- * Fetch all form submissions from Supabase or localStorage.
+ * Fetch all form submissions from Supabase and merge with localStorage.
  */
 export async function fetchFormSubmissions(limit = 200) {
-  if (sb) {
+  const localList = JSON.parse(localStorage.getItem("form_submissions") || "[]");
+  localList.sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
+
+  const client = getSupabase();
+  if (client) {
     try {
-      const res = await sb
+      const res = await client
         .from("form_submissions")
         .select("*")
         .order("created_at", { ascending: false })
@@ -70,39 +91,52 @@ export async function fetchFormSubmissions(limit = 200) {
       if (res && res.error) {
         throw res.error;
       }
-      return { source: "cloud", data: res.data || [] };
+      const cloudData = res.data || [];
+      
+      // Merge cloud and local data seamlessly
+      const combined = [...cloudData];
+      localList.forEach((localItem) => {
+        const exists = cloudData.some(
+          (c) =>
+            (c.id && c.id === localItem.id) ||
+            (c.form_name === localItem.form_name &&
+              Math.abs(new Date(c.created_at || 0) - new Date(localItem.created_at || 0)) < 10000)
+        );
+        if (!exists) {
+          combined.push(localItem);
+        }
+      });
+      combined.sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
+      return { source: cloudData.length > 0 ? "cloud" : "local", data: combined };
     } catch (e) {
       console.warn("Cloud fetch failed, loading local:", e);
     }
   }
 
-  const list = JSON.parse(localStorage.getItem("form_submissions") || "[]");
-  list.sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
-  return { source: "local", data: list };
+  return { source: "local", data: localList };
 }
 
 /**
  * Delete a submission by ID (cloud) or index (local).
  */
 export async function deleteFormSubmission(id, localIdx) {
-  const isLocal = String(id).indexOf("local:") === 0;
-  if (sb && !isLocal) {
+  const isLocal = String(id).indexOf("local") === 0;
+  const client = getSupabase();
+  if (client && !isLocal) {
     try {
-      const res = await sb.from("form_submissions").delete().eq("id", id);
+      const res = await client.from("form_submissions").delete().eq("id", id);
       if (res && res.error) {
         throw res.error;
       }
-      return { source: "cloud" };
     } catch (e) {
-      console.warn("Cloud delete failed, falling back to local:", e);
+      console.warn("Cloud delete failed:", e);
     }
   }
 
   const list = JSON.parse(localStorage.getItem("form_submissions") || "[]");
-  list.sort((a, b) => (b.created_at || "").localeCompare(a.created_at || ""));
-  list.splice(localIdx, 1);
-  localStorage.setItem("form_submissions", JSON.stringify(list));
-  return { source: "local" };
+  const filtered = list.filter((item, idx) => item.id !== id && idx !== localIdx);
+  localStorage.setItem("form_submissions", JSON.stringify(filtered));
+  return { source: isLocal ? "local" : "cloud" };
 }
 
 /* ---------------- Kiosk & Public Profile Authentication ---------------- */
