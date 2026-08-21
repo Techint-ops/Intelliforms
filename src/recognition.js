@@ -616,7 +616,7 @@ export function initRecognitionControls() {
       if (lastDetectedSign && lastDetectedSign !== "-") {
         const currentValue = fillResponseInput.value;
         fillResponseInput.value = currentValue + lastDetectedSign;
-        fillResponseInput.focus();
+        fillResponseInput.focus({ preventScroll: true });
 
         if (detectedSign) {
           detectedSign.style.color = "#3B82F6";
@@ -642,7 +642,7 @@ export function initRecognitionControls() {
       signBuffer = [];
       lastDetectedSign = "";
       if (detectedSign) detectedSign.textContent = "-";
-      fillResponseInput.focus();
+      fillResponseInput.focus({ preventScroll: true });
       if (fillLiveRegion) fillLiveRegion.textContent = "Response cleared";
     });
   }
